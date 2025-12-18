@@ -17,11 +17,9 @@ The choice is yours. The legacy systems await.
 ### Prerequisites
 
 - Python 3.11 or higher
-- [uv](https://docs.astral.sh/uv/) (recommended) or pip
+- [uv](https://docs.astral.sh/uv/) package manager
 
 ### Setup
-
-#### Option 1: Using uv (Recommended)
 
 1. **Install uv** (if not already installed):
    ```bash
@@ -39,46 +37,49 @@ The choice is yours. The legacy systems await.
 
 3. **Install dependencies:**
    ```bash
-   # Option A: Install inline dependencies (simpler, recommended for MCP servers)
-   # No installation needed! uv will handle it automatically when you run the server
-
-   # Option B: Create a virtual environment (optional)
-   uv sync  # May show package discovery warnings - this is expected and safe to ignore
+   uv sync  # Package discovery warnings are safe to ignore
    ```
 
 4. **Run the MCP server:**
    ```bash
-   # Option A: Run with inline dependencies (recommended)
-   uv run --with fastmcp --with pydantic --with uvicorn --with starlette python server.py
-
-   # Option B: Run if you used 'uv sync' above
    uv run python server.py
-   ```
-
-#### Option 2: Using pip
-
-1. **Navigate to the project:**
-   ```bash
-   cd integration-quest
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Run the MCP server:**
-   ```bash
-   python server.py
    ```
 
 ## 🎮 Playing the Game
 
-### Via Claude Desktop
+### Option 1: Terminal Mode (Interactive CLI)
+
+Play directly in your terminal with an interactive command-line interface!
+
+```bash
+uv run python play.py
+```
+
+**Features:**
+- Full interactive gameplay in your terminal
+- Text-based adventure interface
+- All 14 game commands available
+- Save/load functionality
+- Perfect for quick play sessions or development
+
+**Example Session:**
+```
+>>> explore
+🏛️ THE INTEGRATION HUB
+You stand at the entrance...
+
+>>> attack bug
+🎲 Rolled 1d4: [3] = 3
+⚔️ You hit Bug for 3 damage!
+
+>>> status
+📊 Alex the Mage - Level 1
+❤️ Uptime: 90/90
+```
+
+### Option 2: Via Claude Desktop (MCP Server)
 
 Add to your `claude_desktop_config.json`:
-
-#### If using uv (recommended):
 
 ```json
 {
@@ -89,30 +90,9 @@ Add to your `claude_desktop_config.json`:
         "--directory",
         "C:/Users/YOUR_USERNAME/Documents/GitHub/workato-integration-quest/integration-quest",
         "run",
-        "--with",
-        "fastmcp",
-        "--with",
-        "pydantic",
-        "--with",
-        "uvicorn",
-        "--with",
-        "starlette",
         "python",
         "server.py"
       ]
-    }
-  }
-}
-```
-
-#### If using pip:
-
-```json
-{
-  "mcpServers": {
-    "integration-quest": {
-      "command": "python",
-      "args": ["C:/Users/YOUR_USERNAME/Documents/GitHub/workato-integration-quest/integration-quest/server.py"]
     }
   }
 }

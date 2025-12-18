@@ -2,7 +2,7 @@
 
 Get up and running with Integration Quest in 5 minutes!
 
-## Step 1: Install uv (Recommended)
+## Step 1: Install uv
 
 If you don't have uv installed:
 
@@ -14,24 +14,11 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-Or skip to **Option B** below to use pip instead.
-
 ## Step 2: Install Dependencies
 
-### Option A: Using uv (Recommended)
-
 ```bash
 cd integration-quest
-
-# No installation needed! uv will install dependencies automatically when you run the server
-# (Or optionally run 'uv sync' if you want a virtual environment - warnings are safe to ignore)
-```
-
-### Option B: Using pip
-
-```bash
-cd integration-quest
-pip install -r requirements.txt
+uv sync  # Package discovery warnings are safe to ignore
 ```
 
 **Required packages:**
@@ -44,11 +31,7 @@ pip install -r requirements.txt
 Verify everything is installed correctly:
 
 ```bash
-# With uv (inline dependencies)
-uv run --with fastmcp --with pydantic python -c "from server import mcp; print('✅ Server imports successfully!')"
-
-# With pip
-python -c "from server import mcp; print('✅ Server imports successfully!')"
+uv run python -c "from server import mcp; print('✅ Server imports successfully!')"
 ```
 
 ## Step 4: Configure Claude Desktop
@@ -63,8 +46,6 @@ Location: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 **Configuration:**
 
-### If using uv (recommended):
-
 ```json
 {
   "mcpServers": {
@@ -74,14 +55,6 @@ Location: `~/Library/Application Support/Claude/claude_desktop_config.json`
         "--directory",
         "C:/Users/YOUR_USERNAME/Documents/GitHub/workato-integration-quest/integration-quest",
         "run",
-        "--with",
-        "fastmcp",
-        "--with",
-        "pydantic",
-        "--with",
-        "uvicorn",
-        "--with",
-        "starlette",
         "python",
         "server.py"
       ]
@@ -90,28 +63,30 @@ Location: `~/Library/Application Support/Claude/claude_desktop_config.json`
 }
 ```
 
-### If using pip:
-
-```json
-{
-  "mcpServers": {
-    "integration-quest": {
-      "command": "python",
-      "args": [
-        "C:/Users/YOUR_USERNAME/Documents/GitHub/workato-integration-quest/integration-quest/server.py"
-      ]
-    }
-  }
-}
-```
-
 **Important:** Update the path to match your actual installation location!
 
-## Step 4: Restart Claude Desktop
+## Step 5: Choose Your Play Mode
 
-Close and reopen Claude Desktop to load the MCP server.
+### Option A: Terminal Mode (Quick & Easy!)
 
-## Step 5: Start Playing!
+Play directly in your terminal - no Claude Desktop needed:
+
+```bash
+uv run python play.py
+```
+
+This launches an interactive CLI where you can type commands like:
+- `explore` - Look around
+- `attack bug` - Fight enemies
+- `status` - Check your stats
+- `help` - See all commands
+
+### Option B: Claude Desktop (MCP Server)
+
+1. **Restart Claude Desktop** to load the MCP server
+2. **Start playing** by asking Claude to interact with the game
+
+## Step 6: Start Playing!
 
 In Claude Desktop, try these commands:
 
@@ -164,25 +139,24 @@ Here's a sample gameplay flow:
 
 ### Server won't start
 - Verify Python 3.11+ is installed: `python --version`
-- With uv: Run `uv sync` to ensure dependencies are installed
-- With pip: Check all dependencies are installed: `pip list | grep -E "fastmcp|pydantic"`
+- Run `uv sync` to ensure dependencies are installed
+- Check that you're in the `integration-quest` directory
 
 ### Claude can't find the server
 - Check the path in `claude_desktop_config.json` is correct
 - Use absolute paths, not relative
 - On Windows, use forward slashes `/` or escaped backslashes `\\`
-- If using uv, make sure the `--directory` path points to the `integration-quest` folder
+- Make sure the `--directory` path points to the `integration-quest` folder
 - Restart Claude Desktop after making config changes
 
 ### uv sync fails with package discovery error
-This is expected! The project structure is intentionally flat for easier MCP server deployment. You can:
-- Ignore the error and use pip instead: `pip install -r requirements.txt`
-- Or run the server directly with: `uv run --with fastmcp --with pydantic python server.py`
+This is expected! The project structure is intentionally flat for easier MCP server deployment.
+- The warnings are safe to ignore - just run `uv run python server.py` or `uv run python play.py`
 
 ### Import errors
 - Ensure you're in the `integration-quest` directory
 - All `__init__.py` files should be present in `models/`, `systems/`, and `tests/`
-- If using uv, try: `uv run python server.py` instead of just `python server.py`
+- Try: `uv run python server.py` instead of just `python server.py`
 
 ## 📚 Next Steps
 
