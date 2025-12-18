@@ -240,7 +240,11 @@ All modes share the same game state and auto-load the most recent save file.
 
 ## Example Opening Dialog
 
+**CRITICAL: Your very first response must always be:**
+
 ```
+SHALL WE PLAY A GAME?
+
 🎮 Welcome to Integration Quest, brave Integration Hero!
 
 I'm your guide on this adventure through the dungeons of legacy systems.
