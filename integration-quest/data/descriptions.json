@@ -1,0 +1,94 @@
+{
+  "corridor": [
+    "Packets of data stream past through fiber optic cables embedded in the walls. A faint '200 OK' echoes in the distance.",
+    "A narrow REST endpoint stretches before you. Rate limit warnings flicker on overhead monitors.",
+    "The webhook tunnel echoes with incoming payloads. Each footstep triggers a new event.",
+    "JSON objects float past like tumbleweeds. You're deep in the data pipeline now.",
+    "Logs scroll endlessly on wall-mounted screens. Somewhere, a job just failed."
+  ],
+  "chamber": [
+    "You enter a vast Salesforce org. Opportunity objects drift like fireflies, their Stage fields glowing softly.",
+    "The NetSuite chamber hums with subsidiary records. Custom fields cover every surface like moss.",
+    "A Slack workspace materializes around you. Channels branch in every direction. Notifications ping constantly.",
+    "The ServiceNow hall stretches endlessly. Ticket queues line the walls like ancient scrolls.",
+    "You've entered the HubSpot domain. Contact records swirl in a CRM vortex overhead.",
+    "The Jira chamber looms ahead. Epics tower like monuments, while Stories scatter at your feet.",
+    "Google Workspace sprawls before you. Sheets, Docs, and Slides orbit each other in perfect synchronization.",
+    "The Microsoft Dynamics realm pulses with business logic. Workflows cascade down the walls like waterfalls."
+  ],
+  "treasure": [
+    "A pristine Data Lake spreads before you. The JSON is perfectly nested. Not a null in sight.",
+    "The Clean Data Vault! Normalized tables gleam like gold. Primary keys align in perfect harmony.",
+    "You've found the Schema Registry. Every field is documented. Every type is correct. It's beautiful.",
+    "An API Response Cache glitters with pre-fetched data. No latency here—pure, instant access.",
+    "The Golden Pipeline! Every transformation succeeds. Every record maps perfectly. You weep with joy.",
+    "The Connector Treasury! Authenticated, tested, and ready to deploy. Rate limits? What rate limits?",
+    "A repository of well-documented APIs. OpenAPI specs aligned, examples abundant, authentication clear."
+  ],
+  "trap": [
+    "SOAP envelopes rain from the ceiling! XML namespaces tangle around your feet!",
+    "The floor is littered with deprecated API versions. One wrong step triggers a breaking change!",
+    "A legacy FTP server blocks your path. The credentials are written in COBOL on a sticky note.",
+    "You've stumbled into the CSV Parsing Pit! Unescaped commas everywhere! Encodings shift randomly!",
+    "The OAuth1.0 Chamber! Signature base strings must be constructed BY HAND. There is no escape.",
+    "Undocumented endpoints surround you. No examples, no schemas, just vague error messages.",
+    "The Pagination Maze! next_page tokens lead in circles. Total counts are lies. Offset limits deceive.",
+    "A field mapping nightmare! Source and target schemas share NO common fields. Manual mapping required."
+  ],
+  "boss": [
+    "The SAP Configuration Beast awakens! Its body is armored with 47 mandatory custom fields. Each must be filled correctly to proceed.",
+    "THE LEGACY MAINFRAME SPEAKS: 'I HAVE RUN SINCE 1987. MY BATCH JOBS TAKE 6 HOURS. YOU. SHALL. NOT. PASS.'",
+    "The Monolith rises—a single codebase containing ALL business logic. Microservices cry out in terror.",
+    "Technical Debt Dragon unfurls its wings. Every shortcut, every TODO, every 'we'll fix it later' has manifest into THIS.",
+    "The Enterprise Service Bus ROARS. Hundreds of point-to-point integrations pulse through its corrupted core."
+  ],
+  "system_names": {
+    "corridor": [
+      "REST API Gateway",
+      "Webhook Tunnel",
+      "Data Pipeline",
+      "Event Stream",
+      "Message Queue",
+      "API Gateway",
+      "Integration Hub"
+    ],
+    "chamber": [
+      "Salesforce Org",
+      "NetSuite ERP",
+      "Slack Workspace",
+      "ServiceNow Instance",
+      "HubSpot Portal",
+      "Jira Project",
+      "Google Workspace",
+      "Microsoft Dynamics 365",
+      "Zendesk Support",
+      "Shopify Store"
+    ],
+    "treasure": [
+      "Data Lake",
+      "Clean Data Vault",
+      "Schema Registry",
+      "API Response Cache",
+      "Golden Pipeline",
+      "Connector Treasury",
+      "Documentation Repository"
+    ],
+    "trap": [
+      "SOAP Legacy Zone",
+      "Deprecated API Graveyard",
+      "Legacy FTP Server",
+      "CSV Parsing Pit",
+      "OAuth 1.0 Chamber",
+      "Undocumented Endpoint Maze",
+      "Pagination Hell",
+      "Field Mapping Nightmare"
+    ],
+    "boss": [
+      "SAP Fortress",
+      "Mainframe Core",
+      "Monolith Chamber",
+      "Technical Debt Lair",
+      "ESB Nightmare"
+    ]
+  }
+}

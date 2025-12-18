@@ -1,0 +1,140 @@
+{
+  "warrior": [
+    {
+      "id": "bulk_upsert",
+      "name": "Bulk Upsert",
+      "description": "Process all enemies at once with massive throughput",
+      "cost": 15,
+      "effect": "Hit all enemies for weapon damage",
+      "damage_multiplier": 1.0,
+      "targets": "all"
+    },
+    {
+      "id": "force_sync",
+      "name": "Force Sync",
+      "description": "Override all validation and armor",
+      "cost": 20,
+      "effect": "Ignore enemy armor completely",
+      "damage_multiplier": 1.5,
+      "targets": "single",
+      "ignore_armor": true
+    },
+    {
+      "id": "throughput_surge",
+      "name": "Throughput Surge",
+      "description": "Maximize processing speed",
+      "cost": 10,
+      "effect": "Take two actions this turn",
+      "damage_multiplier": 0,
+      "targets": "self",
+      "special": "extra_action"
+    }
+  ],
+  "mage": [
+    {
+      "id": "formula_transform",
+      "name": "Formula Transform",
+      "description": "Rewrite enemy logic with formula power",
+      "cost": 12,
+      "effect": "Change enemy weakness type",
+      "damage_multiplier": 1.2,
+      "targets": "single",
+      "special": "change_weakness"
+    },
+    {
+      "id": "lookup_table_strike",
+      "name": "Lookup Table Strike",
+      "description": "Pre-cached attack that never misses",
+      "cost": 8,
+      "effect": "Guaranteed hit, +50% damage",
+      "damage_multiplier": 1.5,
+      "targets": "single",
+      "guaranteed_hit": true
+    },
+    {
+      "id": "callable_recipe",
+      "name": "Callable Recipe",
+      "description": "Summon an automation ally",
+      "cost": 25,
+      "effect": "Summon automation ally for 3 turns",
+      "damage_multiplier": 0,
+      "targets": "self",
+      "special": "summon_ally_3"
+    }
+  ],
+  "rogue": [
+    {
+      "id": "workaround",
+      "name": "Workaround",
+      "description": "Find the exploit in their defenses",
+      "cost": 10,
+      "effect": "Bypass armor, +100% damage",
+      "damage_multiplier": 2.0,
+      "targets": "single",
+      "ignore_armor": true
+    },
+    {
+      "id": "rate_limit_dance",
+      "name": "Rate Limit Dance",
+      "description": "Perfectly time requests to evade all attacks",
+      "cost": 15,
+      "effect": "Evade all attacks this turn",
+      "damage_multiplier": 0,
+      "targets": "self",
+      "special": "evade_all"
+    },
+    {
+      "id": "custom_connector",
+      "name": "Custom Connector",
+      "description": "Exploit specific weakness for massive damage",
+      "cost": 20,
+      "effect": "Exploit weakness for 3x damage",
+      "damage_multiplier": 3.0,
+      "targets": "single",
+      "requires_weakness": true
+    }
+  ],
+  "cleric": [
+    {
+      "id": "error_handler",
+      "name": "Error Handler",
+      "description": "Graceful recovery from system failure",
+      "cost": 30,
+      "effect": "Auto-revive from 0 Uptime (once per combat)",
+      "damage_multiplier": 0,
+      "targets": "self",
+      "special": "auto_revive"
+    },
+    {
+      "id": "job_recovery",
+      "name": "Job Recovery",
+      "description": "Restore failed processes",
+      "cost": 20,
+      "effect": "Restore 40% of max Uptime",
+      "damage_multiplier": 0,
+      "targets": "self",
+      "special": "heal_40_percent"
+    },
+    {
+      "id": "escalation",
+      "name": "Escalation",
+      "description": "Call for backup support",
+      "cost": 25,
+      "effect": "Call backup (+1 ally for combat)",
+      "damage_multiplier": 0,
+      "targets": "self",
+      "special": "summon_ally_combat"
+    }
+  ],
+  "basic": [
+    {
+      "id": "basic_attack",
+      "name": "Basic Attack",
+      "description": "Standard weapon attack",
+      "cost": 0,
+      "effect": "Deal weapon damage",
+      "damage_multiplier": 1.0,
+      "targets": "single"
+    }
+  ]
+}

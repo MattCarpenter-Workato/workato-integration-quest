@@ -1,0 +1,224 @@
+{
+  "weapons": [
+    {
+      "id": "http_client",
+      "name": "HTTP Client",
+      "description": "A humble HTTP client, your starting connector",
+      "tier": "common",
+      "damage_dice": "1d4",
+      "special_effect": null,
+      "drop_rate": 0.0
+    },
+    {
+      "id": "slack_webhook",
+      "name": "Slack Webhook",
+      "description": "Posts messages that deal damage",
+      "tier": "common",
+      "damage_dice": "1d6",
+      "special_effect": "+2 vs Communication enemies",
+      "drop_rate": 0.6
+    },
+    {
+      "id": "gmail_connector",
+      "name": "Gmail Connector",
+      "description": "Sends emails to multiple targets",
+      "tier": "common",
+      "damage_dice": "1d6",
+      "special_effect": "Can attack multiple targets",
+      "drop_rate": 0.55
+    },
+    {
+      "id": "jira_blade",
+      "name": "Jira Blade",
+      "description": "Creates tickets that track damage",
+      "tier": "uncommon",
+      "damage_dice": "2d4",
+      "special_effect": "Tracks damage dealt",
+      "drop_rate": 0.25
+    },
+    {
+      "id": "salesforce_connector",
+      "name": "Salesforce Connector",
+      "description": "Powerful CRM integration",
+      "tier": "uncommon",
+      "damage_dice": "2d6",
+      "special_effect": "Bulk Mode: Hit all enemies",
+      "drop_rate": 0.2
+    },
+    {
+      "id": "netsuite_blade",
+      "name": "NetSuite Blade",
+      "description": "ERP connector that pierces defenses",
+      "tier": "rare",
+      "damage_dice": "3d6",
+      "special_effect": "Ignores 50% armor",
+      "drop_rate": 0.12
+    },
+    {
+      "id": "servicenow_hammer",
+      "name": "ServiceNow Hammer",
+      "description": "ITSM powerhouse",
+      "tier": "rare",
+      "damage_dice": "2d10",
+      "special_effect": "Stuns on crit",
+      "drop_rate": 0.1
+    },
+    {
+      "id": "sap_rfc_cannon",
+      "name": "SAP RFC Cannon",
+      "description": "Enterprise-grade destruction",
+      "tier": "legendary",
+      "damage_dice": "4d8",
+      "special_effect": "Stuns for 1 turn",
+      "drop_rate": 0.03
+    },
+    {
+      "id": "custom_connector",
+      "name": "Custom Connector",
+      "description": "Hand-crafted for any API",
+      "tier": "epic",
+      "damage_dice": "2d10",
+      "special_effect": "Configurable damage type",
+      "drop_rate": 0.02
+    },
+    {
+      "id": "workato_sdk_staff",
+      "name": "Workato SDK Staff",
+      "description": "The ultimate integration tool",
+      "tier": "legendary",
+      "damage_dice": "3d10",
+      "special_effect": "+5 to all stats while equipped",
+      "drop_rate": 0.01
+    }
+  ],
+  "armor": [
+    {
+      "id": "basic_logging",
+      "name": "Basic Logging",
+      "description": "See what's happening",
+      "tier": "common",
+      "protection": 1,
+      "special_effect": "See enemy HP",
+      "drop_rate": 0.0
+    },
+    {
+      "id": "try_catch_vest",
+      "name": "Try/Catch Vest",
+      "description": "Handles exceptions gracefully",
+      "tier": "common",
+      "protection": 2,
+      "special_effect": "Survive one fatal hit per room",
+      "drop_rate": 0.5
+    },
+    {
+      "id": "retry_logic_armor",
+      "name": "Retry Logic Armor",
+      "description": "Never give up on the first try",
+      "tier": "uncommon",
+      "protection": 4,
+      "special_effect": "Auto-retry failed defenses (3x)",
+      "drop_rate": 0.3
+    },
+    {
+      "id": "circuit_breaker_shield",
+      "name": "Circuit Breaker Shield",
+      "description": "Prevents cascading failures",
+      "tier": "rare",
+      "protection": 6,
+      "special_effect": "Blocks cascading damage",
+      "drop_rate": 0.15
+    },
+    {
+      "id": "observability_plate",
+      "name": "Observability Plate",
+      "description": "Full system visibility",
+      "tier": "legendary",
+      "protection": 10,
+      "special_effect": "See all enemy stats and intents",
+      "drop_rate": 0.05
+    }
+  ],
+  "consumables": [
+    {
+      "id": "job_retry_potion",
+      "name": "Job Retry Potion",
+      "description": "Restore Uptime with a retry",
+      "effect_type": "heal_hp",
+      "effect_value": 50,
+      "drop_rate": 0.4,
+      "single_use": true
+    },
+    {
+      "id": "api_credit_refill",
+      "name": "API Credit Refill",
+      "description": "Restore your API quota",
+      "effect_type": "heal_mp",
+      "effect_value": 30,
+      "drop_rate": 0.35,
+      "single_use": true
+    },
+    {
+      "id": "token_refresh_vial",
+      "name": "Token Refresh Vial",
+      "description": "Renew expired credentials",
+      "effect_type": "cure_status",
+      "effect_value": "auth_expired",
+      "drop_rate": 0.25,
+      "single_use": true
+    },
+    {
+      "id": "api_documentation",
+      "name": "API Documentation",
+      "description": "Reveals enemy weaknesses",
+      "effect_type": "reveal_info",
+      "effect_value": "weakness",
+      "drop_rate": 0.2,
+      "single_use": true
+    },
+    {
+      "id": "graceful_degradation_bomb",
+      "name": "Graceful Degradation Bomb",
+      "description": "Escape combat safely",
+      "effect_type": "escape",
+      "effect_value": "guaranteed",
+      "drop_rate": 0.15,
+      "single_use": true
+    },
+    {
+      "id": "bulk_operation_scroll",
+      "name": "Bulk Operation Scroll",
+      "description": "Next attack hits all enemies",
+      "effect_type": "buff",
+      "effect_value": "aoe_next_attack",
+      "drop_rate": 0.1,
+      "single_use": true
+    },
+    {
+      "id": "webhook_trigger",
+      "name": "Webhook Trigger",
+      "description": "Summon random ally for 3 turns",
+      "effect_type": "special",
+      "effect_value": "summon_ally_3",
+      "drop_rate": 0.08,
+      "single_use": true
+    },
+    {
+      "id": "recipe_fragment",
+      "name": "Recipe Fragment",
+      "description": "Collect 3 for permanent +5 max Uptime",
+      "effect_type": "special",
+      "effect_value": "fragment",
+      "drop_rate": 0.05,
+      "single_use": false
+    },
+    {
+      "id": "golden_ticket",
+      "name": "Golden Ticket",
+      "description": "Skip to next boss room",
+      "effect_type": "special",
+      "effect_value": "skip_to_boss",
+      "drop_rate": 0.02,
+      "single_use": true
+    }
+  ]
+}

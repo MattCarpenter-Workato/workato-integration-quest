@@ -1,0 +1,20 @@
+# Integration Quest: The Workato RPG
+# MCP Server Dependencies
+
+# FastMCP 2.0 for MCP server
+fastmcp>=2.0.0
+
+# Core dependencies
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# For dice rolling and randomization
+python-dice>=2.0.0
+
+# For server runtime
+uvicorn>=0.27.0
+starlette>=0.36.0
+
+# Development dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
