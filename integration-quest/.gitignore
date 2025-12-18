@@ -26,6 +26,11 @@ wheels/
 # Game saves
 storage/saves/*.json
 
+# Test logs
+logs/
+*.log
+test_gameplay_*.log
+
 # IDE
 .vscode/
 .idea/
