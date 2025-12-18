@@ -3,7 +3,7 @@ World, room, and game state models.
 """
 
 from pydantic import BaseModel, Field
-from typing import Dict, List, Optional, Literal
+from typing import Dict, List, Optional, Literal, Any
 from .hero import Hero
 from .combat import CombatState, Enemy
 from .items import Weapon, Armor, Consumable
@@ -48,7 +48,7 @@ class GameState(BaseModel):
     max_depth_reached: int = 1
 
     # Flags for story/progression
-    flags: Dict[str, any] = Field(default_factory=dict)
+    flags: Dict[str, Any] = Field(default_factory=dict)
 
     # Meta
     save_id: Optional[str] = None

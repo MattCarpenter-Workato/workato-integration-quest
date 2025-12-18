@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(printf \"1\\\\nHero\\\\nexplore\\\\nquit\\\\nn\\\\n\")",
+      "Bash(uv run python:*)"
+    ]
+  }
+}

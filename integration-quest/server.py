@@ -66,14 +66,14 @@ def create_new_game_state(name: str, role: str, session_id: str = "default") -> 
     max_api_credits = BASE_STATS["mp"] + bonuses["mp_mod"] + (formula_power * 3)
 
     # Load starting equipment
-    with open(Path(__file__).parent / "data" / "items.json", "r") as f:
+    with open(Path(__file__).parent / "data" / "items.json", "r", encoding="utf-8") as f:
         items_data = json.load(f)
 
     starting_weapon = Weapon(**items_data["weapons"][0])  # HTTP Client
     starting_armor = Armor(**items_data["armor"][0])  # Basic Logging
 
     # Load starting skills
-    with open(Path(__file__).parent / "data" / "skills.json", "r") as f:
+    with open(Path(__file__).parent / "data" / "skills.json", "r", encoding="utf-8") as f:
         skills_data = json.load(f)
 
     role_skills = [skill["id"] for skill in skills_data[role]]
@@ -223,7 +223,7 @@ def view_status() -> dict:
     inventory_str = "\n   - ".join(inventory_list) if inventory_list else "Empty"
 
     # Format skills
-    with open(Path(__file__).parent / "data" / "skills.json", "r") as f:
+    with open(Path(__file__).parent / "data" / "skills.json", "r", encoding="utf-8") as f:
         skills_data = json.load(f)
 
     skills_list = []
@@ -496,7 +496,7 @@ def attack(target: str, skill: str = "basic_attack") -> dict:
         game_state.combat = CombatSystem.initialize_combat(hero, alive_enemies)
 
     # Load skill data
-    with open(Path(__file__).parent / "data" / "skills.json", "r") as f:
+    with open(Path(__file__).parent / "data" / "skills.json", "r", encoding="utf-8") as f:
         skills_data = json.load(f)
 
     # Find skill

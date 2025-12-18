@@ -20,15 +20,15 @@ class DungeonGenerator:
         data_dir = Path(__file__).parent.parent / "data"
 
         # Load enemies
-        with open(data_dir / "enemies.json", "r") as f:
+        with open(data_dir / "enemies.json", "r", encoding="utf-8") as f:
             self.enemy_data = json.load(f)
 
         # Load items
-        with open(data_dir / "items.json", "r") as f:
+        with open(data_dir / "items.json", "r", encoding="utf-8") as f:
             self.item_data = json.load(f)
 
         # Load descriptions
-        with open(data_dir / "descriptions.json", "r") as f:
+        with open(data_dir / "descriptions.json", "r", encoding="utf-8") as f:
             self.description_data = json.load(f)
 
     def generate_room(self, depth: int, room_type: str = None) -> Room:

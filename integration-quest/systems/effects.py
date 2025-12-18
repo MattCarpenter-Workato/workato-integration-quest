@@ -2,7 +2,7 @@
 Status effect management system.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from models.hero import Hero, StatusEffect
 
 

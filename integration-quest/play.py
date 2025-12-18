@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Integration Quest: Terminal Play Mode
 Run the game directly in your terminal!
@@ -8,27 +9,48 @@ Usage:
 """
 
 import sys
+import os
 from pathlib import Path
 
+# Force UTF-8 encoding for Windows console
+if sys.platform == 'win32':
+    if sys.stdout.encoding != 'utf-8':
+        sys.stdout.reconfigure(encoding='utf-8')
+    if sys.stderr.encoding != 'utf-8':
+        sys.stderr.reconfigure(encoding='utf-8')
+
 # Import all the game tools from server
-from server import (
-    create_character, view_status, explore, examine, move, attack,
-    defend, use_item, pickup, equip, rest, flee, save_game, load_game,
-    game_states
-)
+import server
+
+# Extract the actual functions from FastMCP wrapped tools
+create_character = server.create_character.fn
+view_status = server.view_status.fn
+explore = server.explore.fn
+examine = server.examine.fn
+move = server.move.fn
+attack = server.attack.fn
+defend = server.defend.fn
+use_item = server.use_item.fn
+pickup = server.pickup.fn
+equip = server.equip.fn
+rest = server.rest.fn
+flee = server.flee.fn
+save_game = server.save_game.fn
+load_game = server.load_game.fn
+game_states = server.game_states
 
 
 def print_banner():
     """Print the game banner"""
     print("""
-╔═══════════════════════════════════════════════════════════════╗
-║                                                               ║
-║     ⚡ INTEGRATION QUEST: THE WORKATO RPG ⚡                 ║
-║                                                               ║
-║     "Connect the disconnected. Automate the manual.          ║
-║      Defeat the bugs that plague enterprise workflows."      ║
-║                                                               ║
-╚═══════════════════════════════════════════════════════════════╝
+===============================================================
+
+     ** INTEGRATION QUEST: THE WORKATO RPG **
+
+     "Connect the disconnected. Automate the manual.
+      Defeat the bugs that plague enterprise workflows."
+
+===============================================================
 """)
 
 
