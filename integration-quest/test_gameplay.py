@@ -29,20 +29,30 @@ if sys.platform == 'win32':
 import server
 
 # Extract functions from FastMCP wrapped tools
-create_character = server.create_character.fn
-view_status = server.view_status.fn
-explore = server.explore.fn
-examine = server.examine.fn
-move = server.move.fn
-attack = server.attack.fn
-defend = server.defend.fn
-use_item = server.use_item.fn
-pickup = server.pickup.fn
-equip = server.equip.fn
-rest = server.rest.fn
-flee = server.flee.fn
-save_game = server.save_game.fn
-load_game = server.load_game.fn
+# Use .fn attribute if it exists, otherwise use the function directly
+def get_function(tool):
+    """Extract the actual function from a FastMCP tool"""
+    if hasattr(tool, 'fn'):
+        return tool.fn
+    elif callable(tool):
+        return tool
+    else:
+        raise ValueError(f"Cannot extract function from {tool}")
+
+create_character = get_function(server.create_character)
+view_status = get_function(server.view_status)
+explore = get_function(server.explore)
+examine = get_function(server.examine)
+move = get_function(server.move)
+attack = get_function(server.attack)
+defend = get_function(server.defend)
+use_item = get_function(server.use_item)
+pickup = get_function(server.pickup)
+equip = get_function(server.equip)
+rest = get_function(server.rest)
+flee = get_function(server.flee)
+save_game = get_function(server.save_game)
+load_game = get_function(server.load_game)
 game_states = server.game_states
 
 
@@ -286,8 +296,11 @@ class AutomatedPlayer:
 
             # Pick up any valuable items
             if hasattr(current_room, 'items') and current_room.items:
-                items_to_pickup = list(current_room.items)[:2]  # Convert to list first
-                for item in items_to_pickup:
+                # Safely iterate over items without triggering attribute access
+                item_count = 0
+                for item in current_room.items:
+                    if item_count >= 2:  # Limit to first 2 items
+                        break
                     try:
                         item_name = getattr(item, 'name', str(item))
                         self.logger.log_action("pickup", {"item": item_name})
@@ -299,6 +312,8 @@ class AutomatedPlayer:
                             self.logger.log_action("equip", {"item": item_name})
                             result = equip(item=item_name)
                             self.logger.log_result(result)
+
+                        item_count += 1
                     except Exception as e:
                         self.logger.log(f"Error handling item: {e}", "ERROR")
 
@@ -315,7 +330,9 @@ class AutomatedPlayer:
             return False
 
         except Exception as e:
+            import traceback
             self.logger.log(f"Error in explore_and_advance: {e}", "ERROR")
+            self.logger.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
 

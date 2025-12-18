@@ -334,7 +334,8 @@ def explore() -> dict:
     # Format items
     items_list = []
     for item in room.items:
-        items_list.append(f"{item.name} ({item.tier})")
+        tier = getattr(item, 'tier', 'consumable')  # Consumables don't have tier
+        items_list.append(f"{item.name} ({tier})")
     items_str = ", ".join(items_list) if items_list else "None"
 
     # Format enemies
@@ -490,7 +491,7 @@ def move(direction: Literal["north", "south", "east", "west"]) -> dict:
     game_state.update_timestamp()
 
     # Explore the new room automatically
-    return explore()
+    return explore.fn() if hasattr(explore, 'fn') else explore()
 
 
 @mcp.tool()
