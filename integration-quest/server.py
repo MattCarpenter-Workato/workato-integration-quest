@@ -44,6 +44,39 @@ game_states: Dict[str, GameState] = {}
 dungeon_gen = DungeonGenerator()
 
 
+def load_latest_save() -> Optional[GameState]:
+    """Load the most recent save file automatically"""
+    save_dir = Path(__file__).parent / "storage" / "saves"
+
+    if not save_dir.exists():
+        return None
+
+    # Find all save files
+    save_files = list(save_dir.glob("save_*.json"))
+
+    if not save_files:
+        return None
+
+    # Get the most recent save file
+    latest_save = max(save_files, key=lambda f: f.stat().st_mtime)
+
+    try:
+        with open(latest_save, "r", encoding="utf-8") as f:
+            save_data = json.load(f)
+
+        # Restore game state
+        game_state = GameState(**save_data)
+        game_states["default"] = game_state
+        return game_state
+
+    except Exception:
+        return None
+
+
+# Auto-load the latest save file on module initialization
+load_latest_save()
+
+
 def get_or_create_game_state(session_id: str = "default") -> Optional[GameState]:
     """Get game state for session, or None if not initialized"""
     return game_states.get(session_id)

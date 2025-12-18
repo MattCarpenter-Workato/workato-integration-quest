@@ -40,12 +40,36 @@ The choice is yours. The legacy systems await.
    uv sync  # Package discovery warnings are safe to ignore
    ```
 
-4. **Run the MCP server:**
+4. **Choose your play mode:**
    ```bash
+   # Option 1: Terminal Mode (Interactive CLI)
+   uv run python play.py
+
+   # Option 2: Local MCP Server (for Claude Desktop)
    uv run python server.py
+
+   # Option 3: Remote MCP Server (HTTP)
+   uv run python remote_server.py
    ```
 
 ## 🎮 Playing the Game
+
+### 🎓 New Player Guide
+
+**First time playing?** Use the AI Game Guide to learn the mechanics!
+
+Copy the contents of [`game_guide_prompt.md`](game_guide_prompt.md) or [`game_guide_prompt_short.md`](game_guide_prompt_short.md) into your conversation with Claude when using the MCP server. The guide will:
+
+- Teach you game mechanics step-by-step
+- Explain Workato concepts in context
+- Provide strategic advice tailored to your experience level
+- Help you make the most of your Integration Quest adventure
+
+**Quick Start with Guide:**
+1. Open Claude Desktop
+2. Paste the guide prompt at the start of your conversation
+3. Let the guide walk you through character creation and your first steps
+4. The guide adapts to your experience level - ask questions anytime!
 
 ### Option 1: Terminal Mode (Interactive CLI)
 
@@ -101,6 +125,42 @@ Add to your `claude_desktop_config.json`:
 **Important:** Update the path to match your actual installation location!
 
 Then restart Claude Desktop and interact with Claude to use the game tools!
+
+### Option 3: Remote MCP Server (HTTP)
+
+Run the game as a remote MCP server that can be accessed over HTTP using streamable transport:
+
+```bash
+uv run python remote_server.py
+```
+
+This starts an HTTP server (default port 8000) that serves the MCP protocol. Perfect for:
+- Remote access to the game
+- Integration with web applications
+- Multi-client scenarios
+- Cloud deployment
+
+**Connecting to the Remote Server:**
+
+Add to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "integration-quest-remote": {
+      "url": "http://localhost:8000/mcp/v1"
+    }
+  }
+}
+```
+
+Or connect from any MCP client using the URL: `http://localhost:8000/mcp/v1`
+
+**Configuration Options:**
+
+You can customize the server by setting environment variables:
+- `MCP_SERVER_PORT`: Change the port (default: 8000)
+- `MCP_SERVER_HOST`: Change the host (default: 0.0.0.0)
 
 ### Available Commands (MCP Tools)
 
@@ -287,25 +347,29 @@ Special: Can inflict Rate Limited status
 
 ```
 integration-quest/
-├── server.py              # FastMCP server + all 14 tools
-├── config.py              # Game configuration and constants
+├── server.py                    # FastMCP server + all 14 tools
+├── play.py                      # Terminal mode CLI interface
+├── remote_server.py             # Remote MCP server (HTTP)
+├── config.py                    # Game configuration and constants
+├── game_guide_prompt.md         # Full AI guide system prompt
+├── game_guide_prompt_short.md   # Condensed guide prompt
 ├── models/
-│   ├── hero.py            # Hero, stats, inventory
-│   ├── combat.py          # Combat state, enemies
-│   ├── world.py           # Room, dungeon map
-│   └── items.py           # Weapons, armor, consumables
+│   ├── hero.py                  # Hero, stats, inventory
+│   ├── combat.py                # Combat state, enemies
+│   ├── world.py                 # Room, dungeon map
+│   └── items.py                 # Weapons, armor, consumables
 ├── systems/
-│   ├── combat.py          # Damage calc, turn order
-│   ├── generation.py      # Procedural dungeon generation
-│   ├── progression.py     # XP, leveling, skill unlocks
-│   ├── effects.py         # Status effect processing
-│   └── dice.py            # Dice rolling utilities
+│   ├── combat.py                # Damage calc, turn order
+│   ├── generation.py            # Procedural dungeon generation
+│   ├── progression.py           # XP, leveling, skill unlocks
+│   ├── effects.py               # Status effect processing
+│   └── dice.py                  # Dice rolling utilities
 ├── data/
-│   ├── enemies.json       # 20+ enemy definitions
-│   ├── items.json         # Weapons, armor, consumables
-│   ├── descriptions.json  # Room templates
-│   └── skills.json        # Class skills
-└── storage/saves/         # Saved game files
+│   ├── enemies.json             # 20+ enemy definitions
+│   ├── items.json               # Weapons, armor, consumables
+│   ├── descriptions.json        # Room templates
+│   └── skills.json              # Class skills
+└── storage/saves/               # Saved game files
 ```
 
 ## 🎮 Game Features
@@ -316,10 +380,12 @@ integration-quest/
 ✅ **Boss Battles** - Epic encounters every 5 levels
 ✅ **Procedural Dungeons** - Infinite exploration
 ✅ **Loot System** - 10+ weapons, 5+ armor, 9+ consumables
-✅ **Save/Load** - Persistent game state
+✅ **Save/Load** - Persistent game state with auto-load
 ✅ **Status Effects** - Rate Limited, Auth Expired, Buffered, etc.
 ✅ **Progression** - Level up, gain stats, unlock skills
 ✅ **Narrative Combat** - Rich storytelling throughout
+✅ **AI Game Guide** - LLM-powered tutorial system for new players
+✅ **3 Play Modes** - Terminal CLI, Local MCP, Remote HTTP server
 
 ## 🛠️ Development
 

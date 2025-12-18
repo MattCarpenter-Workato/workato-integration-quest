@@ -136,9 +136,12 @@ def main():
     """Main game loop"""
     print_banner()
 
-    # Check if there's an existing game
+    # Check if a save was auto-loaded
     if game_states.get("default"):
-        response = get_input("🎮 Continue existing game? (y/n): ")
+        hero = game_states["default"].hero
+        print(f"✅ Auto-loaded save: {hero.name} (Level {hero.level} {hero.role.title()})")
+        print(f"   Depth: {game_states['default'].depth} | Uptime: {hero.uptime}/{hero.max_uptime}\n")
+        response = get_input("🎮 Continue with this character? (y/n): ")
         if response.lower() != 'y':
             game_states.clear()
 
