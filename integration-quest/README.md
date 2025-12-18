@@ -17,11 +17,47 @@ The choice is yours. The legacy systems await.
 ### Prerequisites
 
 - Python 3.11 or higher
-- pip package manager
+- [uv](https://docs.astral.sh/uv/) (recommended) or pip
 
 ### Setup
 
-1. **Clone the repository:**
+#### Option 1: Using uv (Recommended)
+
+1. **Install uv** (if not already installed):
+   ```bash
+   # On macOS and Linux
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+
+   # On Windows
+   powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+   ```
+
+2. **Navigate to the project:**
+   ```bash
+   cd integration-quest
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   # Option A: Install inline dependencies (simpler, recommended for MCP servers)
+   # No installation needed! uv will handle it automatically when you run the server
+
+   # Option B: Create a virtual environment (optional)
+   uv sync  # May show package discovery warnings - this is expected and safe to ignore
+   ```
+
+4. **Run the MCP server:**
+   ```bash
+   # Option A: Run with inline dependencies (recommended)
+   uv run --with fastmcp --with pydantic --with uvicorn --with starlette python server.py
+
+   # Option B: Run if you used 'uv sync' above
+   uv run python server.py
+   ```
+
+#### Option 2: Using pip
+
+1. **Navigate to the project:**
    ```bash
    cd integration-quest
    ```
@@ -29,11 +65,6 @@ The choice is yours. The legacy systems await.
 2. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
-   ```
-
-   Or with pyproject.toml:
-   ```bash
-   pip install -e .
    ```
 
 3. **Run the MCP server:**
@@ -47,18 +78,49 @@ The choice is yours. The legacy systems await.
 
 Add to your `claude_desktop_config.json`:
 
+#### If using uv (recommended):
+
 ```json
 {
   "mcpServers": {
     "integration-quest": {
-      "command": "python",
-      "args": ["c:/path/to/integration-quest/server.py"]
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:/Users/YOUR_USERNAME/Documents/GitHub/workato-integration-quest/integration-quest",
+        "run",
+        "--with",
+        "fastmcp",
+        "--with",
+        "pydantic",
+        "--with",
+        "uvicorn",
+        "--with",
+        "starlette",
+        "python",
+        "server.py"
+      ]
     }
   }
 }
 ```
 
-Then interact with Claude and use the game tools!
+#### If using pip:
+
+```json
+{
+  "mcpServers": {
+    "integration-quest": {
+      "command": "python",
+      "args": ["C:/Users/YOUR_USERNAME/Documents/GitHub/workato-integration-quest/integration-quest/server.py"]
+    }
+  }
+}
+```
+
+**Important:** Update the path to match your actual installation location!
+
+Then restart Claude Desktop and interact with Claude to use the game tools!
 
 ### Available Commands (MCP Tools)
 

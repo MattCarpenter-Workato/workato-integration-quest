@@ -2,7 +2,32 @@
 
 Get up and running with Integration Quest in 5 minutes!
 
-## Step 1: Install Dependencies
+## Step 1: Install uv (Recommended)
+
+If you don't have uv installed:
+
+```bash
+# On macOS and Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# On Windows (PowerShell)
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Or skip to **Option B** below to use pip instead.
+
+## Step 2: Install Dependencies
+
+### Option A: Using uv (Recommended)
+
+```bash
+cd integration-quest
+
+# No installation needed! uv will install dependencies automatically when you run the server
+# (Or optionally run 'uv sync' if you want a virtual environment - warnings are safe to ignore)
+```
+
+### Option B: Using pip
 
 ```bash
 cd integration-quest
@@ -14,15 +39,19 @@ pip install -r requirements.txt
 - pydantic >= 2.0.0
 - uvicorn >= 0.27.0
 
-## Step 2: Test the Server
+## Step 3: Test the Server
 
 Verify everything is installed correctly:
 
 ```bash
+# With uv (inline dependencies)
+uv run --with fastmcp --with pydantic python -c "from server import mcp; print('✅ Server imports successfully!')"
+
+# With pip
 python -c "from server import mcp; print('✅ Server imports successfully!')"
 ```
 
-## Step 3: Configure Claude Desktop
+## Step 4: Configure Claude Desktop
 
 Add this to your `claude_desktop_config.json`:
 
@@ -33,6 +62,35 @@ Location: `%APPDATA%\Claude\claude_desktop_config.json`
 Location: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 **Configuration:**
+
+### If using uv (recommended):
+
+```json
+{
+  "mcpServers": {
+    "integration-quest": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:/Users/YOUR_USERNAME/Documents/GitHub/workato-integration-quest/integration-quest",
+        "run",
+        "--with",
+        "fastmcp",
+        "--with",
+        "pydantic",
+        "--with",
+        "uvicorn",
+        "--with",
+        "starlette",
+        "python",
+        "server.py"
+      ]
+    }
+  }
+}
+```
+
+### If using pip:
 
 ```json
 {
@@ -106,16 +164,25 @@ Here's a sample gameplay flow:
 
 ### Server won't start
 - Verify Python 3.11+ is installed: `python --version`
-- Check all dependencies are installed: `pip list | grep -E "fastmcp|pydantic"`
+- With uv: Run `uv sync` to ensure dependencies are installed
+- With pip: Check all dependencies are installed: `pip list | grep -E "fastmcp|pydantic"`
 
 ### Claude can't find the server
 - Check the path in `claude_desktop_config.json` is correct
 - Use absolute paths, not relative
 - On Windows, use forward slashes `/` or escaped backslashes `\\`
+- If using uv, make sure the `--directory` path points to the `integration-quest` folder
+- Restart Claude Desktop after making config changes
+
+### uv sync fails with package discovery error
+This is expected! The project structure is intentionally flat for easier MCP server deployment. You can:
+- Ignore the error and use pip instead: `pip install -r requirements.txt`
+- Or run the server directly with: `uv run --with fastmcp --with pydantic python server.py`
 
 ### Import errors
 - Ensure you're in the `integration-quest` directory
 - All `__init__.py` files should be present in `models/`, `systems/`, and `tests/`
+- If using uv, try: `uv run python server.py` instead of just `python server.py`
 
 ## 📚 Next Steps
 

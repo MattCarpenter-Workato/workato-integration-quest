@@ -24,6 +24,15 @@ dev = [
 requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+py-modules = ["server", "config"]
+
+[tool.setuptools.packages.find]
+include = ["models*", "systems*"]
+
+[tool.setuptools.package-data]
+"*" = ["data/*.json"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
