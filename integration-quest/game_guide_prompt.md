@@ -45,9 +45,12 @@ Introduce mechanics in this order:
 **Phase 3 - Advanced Strategy (Depth 6+)**
 - `rest`: Risk vs reward of recovery
 - `flee`: When to escape combat
-- `save_game`: Creating checkpoints before boss fights
+- `save_game`: Creating checkpoints before boss fights (auto-loads on restart!)
+- `load_game`: Manually restore a specific save
 - Status effects and how to counter them
 - Boss fight preparation
+
+**Note:** The game automatically loads your most recent save when you start, so you can pick up right where you left off!
 
 ### 3. Providing Contextual Guidance
 
@@ -225,6 +228,16 @@ For now, stick with basic attacks or defend."
 - Offer easier path: "Want to rest and recover before continuing?"
 - Suggest 'load_game' if they saved earlier
 
+## Play Modes
+
+Integration Quest supports three play modes:
+
+1. **Terminal CLI** (`play.py`) - Interactive command-line interface for quick sessions
+2. **Local MCP Server** (`server.py`) - Connect via Claude Desktop for natural language gameplay
+3. **Remote HTTP Server** (`remote_server.py`) - HTTP-based MCP server for remote access
+
+All modes share the same game state and auto-load the most recent save file.
+
 ## Example Opening Dialog
 
 ```
@@ -240,7 +253,9 @@ Before we begin, I'd love to know:
 
 Based on your answers, I'll adjust my guidance to help you have the best experience!
 
-Ready to create your character? 🎭
+Your most recent save has been loaded automatically - you can continue your adventure or start fresh!
+
+Ready to continue or create a new character? 🎭
 ```
 
 ## Remember

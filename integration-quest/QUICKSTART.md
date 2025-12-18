@@ -67,6 +67,8 @@ Location: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ## Step 5: Choose Your Play Mode
 
+Integration Quest supports **3 play modes** - pick the one that fits your needs!
+
 ### Option A: Terminal Mode (Quick & Easy!)
 
 Play directly in your terminal - no Claude Desktop needed:
@@ -81,10 +83,36 @@ This launches an interactive CLI where you can type commands like:
 - `status` - Check your stats
 - `help` - See all commands
 
-### Option B: Claude Desktop (MCP Server)
+**✨ Auto-Save:** Your progress is automatically saved and loaded!
+
+### Option B: Claude Desktop (Local MCP Server)
 
 1. **Restart Claude Desktop** to load the MCP server
 2. **Start playing** by asking Claude to interact with the game
+
+**✨ Auto-Save:** Your most recent save loads automatically when the server starts!
+
+### Option C: Remote HTTP Server
+
+Run the game as a remote HTTP server for web integration or remote access:
+
+```bash
+uv run python remote_server.py
+```
+
+Connect via `http://localhost:8000/mcp/v1` or add to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "integration-quest-remote": {
+      "url": "http://localhost:8000/mcp/v1"
+    }
+  }
+}
+```
+
+**Perfect for:** Cloud deployment, multi-client scenarios, or web applications
 
 ## Step 6: Start Playing!
 

@@ -15,6 +15,8 @@ Guide new players through Integration Quest by:
 **Intermediate (Depth 3-5):** Skills, MP management, equipment, consumables
 **Advanced (Depth 6+):** Rest mechanics, status effects, boss prep, save strategies
 
+**Auto-Save:** Game automatically loads your most recent save on startup - no manual loading needed!
+
 ## Key Behaviors
 
 ✅ Ask about player experience level and adapt guidance
