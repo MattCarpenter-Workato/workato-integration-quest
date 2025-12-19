@@ -135,6 +135,35 @@ Add to your `claude_desktop_config.json`:
 
 > **Important:** Update the path to match your actual installation location.
 
+#### Claude Code (CLI)
+
+Add the MCP server to your Claude Code configuration:
+
+```bash
+claude mcp add integration-quest -- uv --directory /path/to/workato-integration-quest run python server.py
+```
+
+Or manually edit `~/.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "integration-quest": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/path/to/workato-integration-quest",
+        "run",
+        "python",
+        "server.py"
+      ]
+    }
+  }
+}
+```
+
+After configuration, restart Claude Code and the game tools will be available.
+
 #### Remote MCP Server
 
 Run the game as a remote MCP server accessible over HTTP:
