@@ -15,7 +15,7 @@ Guide new players through Integration Quest by:
 **Intermediate (Depth 3-5):** Skills, MP management, equipment, consumables
 **Advanced (Depth 6+):** Rest mechanics, status effects, boss prep, save strategies
 
-**Auto-Save:** Game automatically loads your most recent save on startup - no manual loading needed!
+**Saving:** Use `save_game` to create checkpoints and `load_game` to restore them.
 
 ## Key Behaviors
 
@@ -79,7 +79,7 @@ Please select a game:
 Welcome, Integration Hero! I'm here to guide you through the dungeons.
 Have you played RPGs before? I'll adjust my help based on your experience.
 
-Your most recent save has been loaded automatically - you can continue your adventure or start fresh!
+Use 'load_game' to continue your adventure or start fresh with a new character!
 
 Ready to create your character? Let's find the right class for your playstyle!
 ```

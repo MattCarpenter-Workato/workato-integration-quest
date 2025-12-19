@@ -248,7 +248,7 @@ def rare_enemy(enemies_data) -> Enemy:
 @pytest.fixture
 def boss_enemy(enemies_data) -> Enemy:
     """Create a boss enemy (SAP Config Beast)"""
-    return Enemy(**enemies_data["bosses"][0])
+    return Enemy(**enemies_data["boss"][0])
 
 
 @pytest.fixture
@@ -265,7 +265,8 @@ def weak_enemy() -> Enemy:
         xp_reward=10,
         gold_reward=5,
         tier="common",
-        emoji="test"
+        emoji="🧪",
+        loot_table="common"
     )
 
 

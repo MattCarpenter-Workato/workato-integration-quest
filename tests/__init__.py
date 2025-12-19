@@ -7,6 +7,7 @@ This package contains comprehensive tests for the Integration Quest game:
 - test_systems.py: Unit tests for game systems (Dice, Progression, Effects, Generation)
 - test_combat.py: Unit tests for the combat system
 - test_game_tools.py: Integration tests for MCP game tools
+- test_multiplayer.py: Tests for multiplayer features (registration, login, leaderboard)
 - test_dice.py: Legacy dice tests (kept for backwards compatibility)
 - test_progression.py: Legacy progression tests (kept for backwards compatibility)
 
@@ -15,6 +16,9 @@ Run all tests with:
 
 Run specific test file:
     uv run pytest tests/test_models.py -v
+
+Run multiplayer tests only:
+    uv run pytest tests/test_multiplayer.py -v
 
 Run with coverage:
     uv run pytest tests/ --cov=. --cov-report=html

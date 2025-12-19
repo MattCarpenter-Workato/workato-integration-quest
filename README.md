@@ -128,7 +128,7 @@ Deploy Integration Quest to the cloud for free with [FastMCP Cloud](https://fast
 3. Create a new project with entrypoint: `server.py:mcp`
 4. Connect via: `npx mcp-remote https://your-project.fastmcp.app/mcp`
 
-See [DEPLOY_FASTMCP_CLOUD.md](DEPLOY_FASTMCP_CLOUD.md) for detailed instructions.
+See [deploy-fastmcp-cloud.md](deploy-fastmcp-cloud.md) for detailed instructions.
 
 ### Available Commands
 
@@ -399,6 +399,7 @@ workato-integration-quest/
     ├── test_systems.py       # Systems unit tests
     ├── test_combat.py        # Combat system tests
     ├── test_game_tools.py    # MCP tool integration tests
+    ├── test_multiplayer.py   # Multiplayer feature tests
     ├── test_dice.py          # Dice rolling tests
     └── test_progression.py   # Progression system tests
 ```
@@ -408,14 +409,15 @@ workato-integration-quest/
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all tests (157 tests)
 uv run pytest tests/ -v
 
 # Run specific test modules
-uv run pytest tests/test_models.py -v      # Model unit tests
-uv run pytest tests/test_systems.py -v     # Systems unit tests
-uv run pytest tests/test_combat.py -v      # Combat system tests
-uv run pytest tests/test_game_tools.py -v  # MCP tool integration tests
+uv run pytest tests/test_models.py -v       # Model unit tests
+uv run pytest tests/test_systems.py -v      # Systems unit tests
+uv run pytest tests/test_combat.py -v       # Combat system tests
+uv run pytest tests/test_game_tools.py -v   # MCP tool integration tests
+uv run pytest tests/test_multiplayer.py -v  # Multiplayer feature tests
 
 # Run with coverage report
 uv run pytest tests/ --cov=. --cov-report=html
@@ -426,15 +428,16 @@ uv run pytest tests/ -k "test_hero" -v
 
 ### Test Structure
 
-| Test File | Description |
-|-----------|-------------|
-| `conftest.py` | Shared fixtures (heroes, items, enemies, game states) |
-| `test_models.py` | Hero, Item, Enemy, Room, GameState model tests |
-| `test_systems.py` | Dice, Progression, Effects, Generation system tests |
-| `test_combat.py` | Combat system initialization, attacks, damage calculation |
-| `test_game_tools.py` | MCP tool integration tests (character creation, combat, items) |
-| `test_dice.py` | Legacy dice rolling tests |
-| `test_progression.py` | Legacy progression system tests |
+| Test File | Tests | Description |
+|-----------|-------|-------------|
+| `conftest.py` | — | Shared fixtures (heroes, items, enemies, game states) |
+| `test_models.py` | 31 | Hero, Item, Enemy, Room, GameState model tests |
+| `test_systems.py` | 28 | Dice, Progression, Effects, Generation system tests |
+| `test_combat.py` | 22 | Combat initialization, attacks, damage calculation |
+| `test_game_tools.py` | 34 | MCP tool integration tests (character creation, combat, items) |
+| `test_multiplayer.py` | 27 | Registration, login, leaderboard, score tracking |
+| `test_dice.py` | 5 | Legacy dice rolling tests |
+| `test_progression.py` | 5 | Legacy progression system tests |
 
 ### Adding Content
 
@@ -473,30 +476,6 @@ Contributions are welcome! Here's how you can help:
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-```
-MIT License
-
-Copyright (c) 2024 Matt Carpenter
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
 
 ## Credits
 

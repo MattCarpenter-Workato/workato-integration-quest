@@ -22,7 +22,7 @@ class TestCombatInitialization:
         assert combat is not None
         assert combat.active
         assert len(combat.enemies) == 1
-        assert combat.turn >= 1
+        assert combat.round_num >= 1
 
     def test_initialize_combat_multiple_enemies(self, warrior_hero, common_enemy, enemies_data):
         """Test combat with multiple enemies"""
@@ -269,11 +269,11 @@ class TestSpecialMechanics:
             rare_enemy.is_examined = True
             assert rare_enemy.is_examined
 
-    def test_combat_turn_counter(self, combat_state):
-        """Test that combat turns are tracked"""
-        initial_turn = combat_state.turn
-        combat_state.turn += 1
-        assert combat_state.turn == initial_turn + 1
+    def test_combat_round_counter(self, combat_state):
+        """Test that combat rounds are tracked"""
+        initial_round = combat_state.round_num
+        combat_state.round_num += 1
+        assert combat_state.round_num == initial_round + 1
 
     def test_combat_active_flag(self, combat_state):
         """Test combat active flag"""
@@ -290,10 +290,11 @@ class TestSpecialMechanics:
 class TestCombatEndConditions:
     """Tests for combat end conditions"""
 
-    def test_all_enemies_defeated(self, warrior_hero, weak_enemy, combat_state):
+    def test_all_enemies_defeated(self, warrior_hero, combat_state):
         """Test combat ends when all enemies defeated"""
-        # Kill the enemy
-        weak_enemy.hp = 0
+        # Kill all enemies in the combat state
+        for enemy in combat_state.enemies:
+            enemy.hp = 0
 
         # Check if all enemies are defeated
         all_defeated = all(e.hp <= 0 for e in combat_state.enemies)
@@ -326,7 +327,7 @@ class TestCombatStatusEffects:
 
         effect = StatusEffect(
             name="Rate Limited",
-            effect_type="debuff",
+            effect_type="rate_limited",
             duration=2,
             description="Actions cost more"
         )
@@ -341,7 +342,7 @@ class TestCombatStatusEffects:
 
         effect = StatusEffect(
             name="Auth Expired",
-            effect_type="debuff",
+            effect_type="auth_expired",
             duration=3,
             description="Cannot use skills"
         )

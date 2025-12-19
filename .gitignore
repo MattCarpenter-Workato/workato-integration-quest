@@ -47,4 +47,3 @@ htmlcov/
 # Environment
 .env
 .env.local
-/integration-quest/storage

@@ -268,15 +268,11 @@ Recommendation: [specific tactic based on situation]"
 - Tease: "Depth [X] has rare loot..."
 - Skip ahead: "You've got this - push to depth [X]"
 
-## Play Modes
+## Play Mode
 
-Integration Quest supports three play modes:
+Integration Quest runs as an MCP server (`server.py`) that you connect to via Claude Desktop or other MCP clients. The server supports both single-player and multiplayer modes.
 
-1. **Terminal CLI** (`play.py`) - Interactive command-line interface for quick sessions
-2. **Local MCP Server** (`server.py`) - Connect via Claude Desktop for natural language gameplay
-3. **Remote HTTP Server** (`remote_server.py`) - HTTP-based MCP server for remote access
-
-All modes share the same game state and auto-load the most recent save file.
+Use `save_game` and `load_game` commands to manage your progress.
 
 ## Opening Dialog Protocol
 
