@@ -30,9 +30,10 @@ The choice is yours. The legacy systems await.
    powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
    ```
 
-2. **Navigate to the project:**
+2. **Clone and navigate to the project:**
    ```bash
-   cd integration-quest
+   git clone https://github.com/MattCarpenter-Workato/workato-integration-quest.git
+   cd workato-integration-quest
    ```
 
 3. **Install dependencies:**
@@ -112,7 +113,7 @@ Add to your `claude_desktop_config.json`:
       "command": "uv",
       "args": [
         "--directory",
-        "C:/Users/YOUR_USERNAME/Documents/GitHub/workato-integration-quest/integration-quest",
+        "/path/to/workato-integration-quest",
         "run",
         "python",
         "server.py"
@@ -350,24 +351,27 @@ Special: Can inflict Rate Limited status
 ## 🏗️ Project Structure
 
 ```
-integration-quest/
+workato-integration-quest/
 ├── server.py                    # FastMCP server + all 14 tools
 ├── play.py                      # Terminal mode CLI interface
-├── remote_server.py             # Remote MCP server (HTTP)
+├── remote_server.py             # Remote MCP server (HTTP/SSE)
 ├── config.py                    # Game configuration and constants
+├── pyproject.toml               # Python project configuration
+├── requirements.txt             # Python dependencies
+├── uv.lock                      # uv lock file
 ├── README.md                    # This file - Full documentation
-├── QUICKSTART.md                # Get started in 5 minutes
 ├── TESTING.md                   # Testing guide and results
 ├── game_guide_prompt.md         # Full AI guide system prompt
 ├── game_guide_prompt_short.md   # Condensed guide prompt
 ├── test_all_functions.py        # Function validation tests (31 tests)
-├── test_gameplay.py             # Automated gameplay simulation
 ├── models/
+│   ├── __init__.py              # Model exports
 │   ├── hero.py                  # Hero, stats, inventory
 │   ├── combat.py                # Combat state, enemies
 │   ├── world.py                 # Room, dungeon map
 │   └── items.py                 # Weapons, armor, consumables
 ├── systems/
+│   ├── __init__.py              # System exports
 │   ├── combat.py                # Damage calc, turn order
 │   ├── generation.py            # Procedural dungeon generation
 │   ├── progression.py           # XP, leveling, skill unlocks
@@ -378,7 +382,10 @@ integration-quest/
 │   ├── items.json               # Weapons, armor, consumables
 │   ├── descriptions.json        # Room templates
 │   └── skills.json              # Class skills
-├── storage/saves/               # Saved game files
+├── tests/
+│   ├── __init__.py              # Test package init
+│   ├── test_dice.py             # Dice rolling unit tests
+│   └── test_progression.py      # Progression system tests
 └── logs/                        # Test logs (git ignored)
 ```
 
@@ -396,7 +403,7 @@ integration-quest/
 ✅ **Narrative Combat** - Rich storytelling throughout
 ✅ **AI Game Guide** - LLM-powered tutorial system for new players
 ✅ **3 Play Modes** - Terminal CLI, Local MCP, Remote HTTP server
-✅ **Comprehensive Testing** - 31 function tests + automated gameplay validation
+✅ **Comprehensive Testing** - 31 function tests + unit tests
 
 ## 🛠️ Development
 
@@ -408,16 +415,12 @@ Integration Quest includes comprehensive automated testing:
 # Run all function tests (31 tests - validates all game functions)
 uv run python test_all_functions.py
 
-# Run automated gameplay simulation (depth 5 by default)
-uv run python test_gameplay.py
-
-# Test specific class to deeper levels
-uv run python test_gameplay.py --class mage --depth 10
+# Run unit tests with pytest
+uv run pytest tests/
 ```
 
 **Test Results:**
 - ✅ 31/31 function tests passing (100%)
-- ✅ Automated gameplay successfully completes 1000+ actions
 - ✅ Full coverage: combat, progression, save/load, items, status effects
 
 See [TESTING.md](TESTING.md) for complete testing documentation.
