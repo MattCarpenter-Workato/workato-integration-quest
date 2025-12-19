@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "workato-integration-quest": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://integration-quest.fastmcp.app/mcp"
+      ]
+    }
+  }
+}
