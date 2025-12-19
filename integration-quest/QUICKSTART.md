@@ -191,9 +191,24 @@ This is expected! The project structure is intentionally flat for easier MCP ser
 Once you're up and running:
 
 1. **Read the [README.md](README.md)** for full game mechanics
-2. **Explore different classes** - Try warrior, mage, rogue, and cleric
-3. **Reach depth 5** to face your first boss!
-4. **Collect rare loot** and build the ultimate Integration Hero
+2. **Try the AI Game Guide** - Use [game_guide_prompt.md](game_guide_prompt.md) for guided tutorial
+3. **Explore different classes** - Try warrior, mage, rogue, and cleric
+4. **Reach depth 5** to face your first boss!
+5. **Collect rare loot** and build the ultimate Integration Hero
+
+## 🧪 Testing
+
+Verify the game works correctly:
+
+```bash
+# Run all function tests (31 tests)
+uv run python test_all_functions.py
+
+# Run automated gameplay simulation
+uv run python test_gameplay.py
+```
+
+See [TESTING.md](TESTING.md) for complete testing documentation.
 
 ## 🎯 Pro Tips
 

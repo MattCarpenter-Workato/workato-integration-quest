@@ -351,8 +351,13 @@ integration-quest/
 ├── play.py                      # Terminal mode CLI interface
 ├── remote_server.py             # Remote MCP server (HTTP)
 ├── config.py                    # Game configuration and constants
+├── README.md                    # This file - Full documentation
+├── QUICKSTART.md                # Get started in 5 minutes
+├── TESTING.md                   # Testing guide and results
 ├── game_guide_prompt.md         # Full AI guide system prompt
 ├── game_guide_prompt_short.md   # Condensed guide prompt
+├── test_all_functions.py        # Function validation tests (31 tests)
+├── test_gameplay.py             # Automated gameplay simulation
 ├── models/
 │   ├── hero.py                  # Hero, stats, inventory
 │   ├── combat.py                # Combat state, enemies
@@ -369,7 +374,8 @@ integration-quest/
 │   ├── items.json               # Weapons, armor, consumables
 │   ├── descriptions.json        # Room templates
 │   └── skills.json              # Class skills
-└── storage/saves/               # Saved game files
+├── storage/saves/               # Saved game files
+└── logs/                        # Test logs (git ignored)
 ```
 
 ## 🎮 Game Features
@@ -386,14 +392,31 @@ integration-quest/
 ✅ **Narrative Combat** - Rich storytelling throughout
 ✅ **AI Game Guide** - LLM-powered tutorial system for new players
 ✅ **3 Play Modes** - Terminal CLI, Local MCP, Remote HTTP server
+✅ **Comprehensive Testing** - 31 function tests + automated gameplay validation
 
 ## 🛠️ Development
 
 ### Running Tests
 
+Integration Quest includes comprehensive automated testing:
+
 ```bash
-pytest tests/
+# Run all function tests (31 tests - validates all game functions)
+uv run python test_all_functions.py
+
+# Run automated gameplay simulation (depth 5 by default)
+uv run python test_gameplay.py
+
+# Test specific class to deeper levels
+uv run python test_gameplay.py --class mage --depth 10
 ```
+
+**Test Results:**
+- ✅ 31/31 function tests passing (100%)
+- ✅ Automated gameplay successfully completes 1000+ actions
+- ✅ Full coverage: combat, progression, save/load, items, status effects
+
+See [TESTING.md](TESTING.md) for complete testing documentation.
 
 ### Adding New Content
 

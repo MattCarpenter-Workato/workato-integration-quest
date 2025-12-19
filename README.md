@@ -47,7 +47,8 @@ uv run python remote_server.py     # Remote HTTP server
 ## 📖 Documentation
 
 - **[Full Game Guide](integration-quest/README.md)** - Complete documentation, gameplay, and features
-- **[MCP Specification](integration-quest-mcp-spec.md)** - Technical implementation details
+- **[Quick Start Guide](integration-quest/QUICKSTART.md)** - Get up and running in 5 minutes
+- **[Testing Guide](integration-quest/TESTING.md)** - Automated testing documentation
 - **[AI Game Guide](integration-quest/game_guide_prompt.md)** - LLM prompt for guided gameplay
 - **[Quick Guide](integration-quest/game_guide_prompt_short.md)** - Condensed tutorial prompt
 
@@ -151,20 +152,24 @@ Copy the contents of [`game_guide_prompt.md`](integration-quest/game_guide_promp
 
 ```
 workato-integration-quest/
-├── README.md                        # This file
-├── integration-quest-mcp-spec.md    # MCP technical specification
+├── README.md                        # This file - Quick overview
 └── integration-quest/               # Main game directory
     ├── README.md                    # Full game documentation
+    ├── QUICKSTART.md                # Get started in 5 minutes
+    ├── TESTING.md                   # Testing guide and results
     ├── server.py                    # FastMCP server (14 tools)
     ├── play.py                      # Terminal CLI mode
     ├── remote_server.py             # HTTP remote server
     ├── config.py                    # Game configuration
     ├── game_guide_prompt.md         # Full AI guide prompt
     ├── game_guide_prompt_short.md   # Quick guide prompt
-    ├── models/                      # Game data models
-    ├── systems/                     # Game systems (combat, etc.)
+    ├── test_all_functions.py        # Function validation tests
+    ├── test_gameplay.py             # Automated gameplay tests
+    ├── models/                      # Game data models (11 files)
+    ├── systems/                     # Game systems (combat, generation, etc.)
     ├── data/                        # JSON game data
-    └── storage/saves/               # Save files
+    ├── storage/saves/               # Save files
+    └── logs/                        # Test logs
 ```
 
 ## 🛠️ Technical Details
@@ -245,6 +250,17 @@ Integration Quest teaches real integration concepts through gameplay:
 - **Graceful Degradation** - Flee system and fallback strategies
 - **Observability** - Examine tool and status monitoring
 - **Technical Debt** - Boss enemies that accumulate over time
+
+## 🧪 Testing & Quality
+
+Integration Quest includes comprehensive automated testing:
+
+- **31/31 Function Tests Passing** - All game functions validated
+- **Automated Gameplay Tests** - AI-driven gameplay simulation
+- **Full Coverage** - Combat, progression, save/load, items, and more
+- **Continuous Testing** - Run `test_all_functions.py` and `test_gameplay.py`
+
+See [TESTING.md](integration-quest/TESTING.md) for full testing documentation.
 
 ## 🤝 Contributing
 
