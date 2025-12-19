@@ -103,3 +103,9 @@ REST_MP_RECOVERY = 0.75  # 75% of max MP
 REST_ENCOUNTER_CHANCE = 0.20  # 20% chance
 FLEE_BASE_CHANCE = 0.50  # 50% base + DEX modifier
 DEFENSE_DAMAGE_REDUCTION = 0.50  # 50% damage reduction when defending
+
+# Multiplayer settings
+MIN_USERNAME_LENGTH = 3
+MAX_USERNAME_LENGTH = 20
+USERNAME_PATTERN = r'^[a-zA-Z0-9_]+$'
+TOKEN_LENGTH = 32  # hex characters (16 bytes = 32 hex chars)

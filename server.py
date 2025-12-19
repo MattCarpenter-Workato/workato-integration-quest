@@ -4,17 +4,28 @@ FastMCP Server Implementation
 
 A Workato-themed text-based RPG where players are Integration Heroes
 battling through legacy systems, API errors, and enterprise chaos.
+
+Supports two modes:
+- Single-player (default): JSON file storage, no registration needed
+- Multiplayer (MULTIPLAYER_MODE=true): MongoDB + SendGrid, leaderboard enabled
 """
 
 import sys
+import os
 import json
 import random
+import re
+import secrets
 from pathlib import Path
 from typing import Literal, Optional, Dict
 from datetime import datetime
 
 # Debug logging to stderr
 print("Integration Quest: Starting server initialization...", file=sys.stderr)
+
+# Check for multiplayer mode
+MULTIPLAYER_MODE = os.environ.get("MULTIPLAYER_MODE", "").lower() == "true"
+print(f"Integration Quest: Multiplayer mode: {MULTIPLAYER_MODE}", file=sys.stderr)
 
 from fastmcp import FastMCP
 
@@ -37,8 +48,34 @@ from systems.dice import roll_percentage
 from config import (
     CLASS_BONUSES, BASE_STATS, ERRORS, VICTORY_MESSAGES,
     GAME_OVER_MESSAGES, REST_HP_RECOVERY, REST_MP_RECOVERY,
-    REST_ENCOUNTER_CHANCE, FLEE_BASE_CHANCE
+    REST_ENCOUNTER_CHANCE, FLEE_BASE_CHANCE,
+    MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, USERNAME_PATTERN
 )
+
+# Import multiplayer models and systems (always available for easy mode switching)
+from models.player import PlayerSession
+
+# Conditionally initialize multiplayer services
+db = None
+email_service = None
+
+if MULTIPLAYER_MODE:
+    try:
+        from systems.database import DatabaseManager
+        from systems.email_service import EmailService
+
+        # Validate required environment variables
+        required_vars = ["MONGODB_URI", "SENDGRID_API_KEY", "FROM_EMAIL"]
+        missing = [v for v in required_vars if not os.environ.get(v)]
+        if missing:
+            raise EnvironmentError(f"Multiplayer mode requires: {', '.join(missing)}")
+
+        db = DatabaseManager()
+        email_service = EmailService()
+        print("Integration Quest: Multiplayer services initialized", file=sys.stderr)
+    except Exception as e:
+        print(f"Integration Quest: Failed to initialize multiplayer: {e}", file=sys.stderr)
+        raise
 
 print("Integration Quest: All imports successful", file=sys.stderr)
 
@@ -50,8 +87,42 @@ print("Integration Quest: FastMCP server created", file=sys.stderr)
 # Game state storage (in-memory, keyed by session)
 game_states: Dict[str, GameState] = {}
 
+# Player sessions storage (multiplayer mode only)
+player_sessions: Dict[str, PlayerSession] = {}
+
 # Initialize dungeon generator
 dungeon_gen = DungeonGenerator()
+
+
+# ============================================================================
+# MULTIPLAYER HELPER FUNCTIONS
+# ============================================================================
+
+def get_player_session(session_id: str = "default") -> Optional[PlayerSession]:
+    """Get player session if authenticated"""
+    return player_sessions.get(session_id)
+
+
+def require_multiplayer() -> None:
+    """Raise error if not in multiplayer mode"""
+    if not MULTIPLAYER_MODE:
+        raise ValueError("❌ This feature requires multiplayer mode. Set MULTIPLAYER_MODE=true to enable.")
+
+
+def validate_username(username: str) -> tuple[bool, str]:
+    """Validate username format"""
+    if len(username) < MIN_USERNAME_LENGTH:
+        return False, f"Username must be at least {MIN_USERNAME_LENGTH} characters"
+    if len(username) > MAX_USERNAME_LENGTH:
+        return False, f"Username must be at most {MAX_USERNAME_LENGTH} characters"
+    if not re.match(USERNAME_PATTERN, username):
+        return False, "Username can only contain letters, numbers, and underscores"
+    return True, ""
+
+
+def generate_token() -> str:
+    """Generate a secure 32-character hex token"""
+    return secrets.token_hex(16)
 
 
 def load_latest_save() -> Optional[GameState]:
@@ -228,6 +299,12 @@ broken promises.
 
 💡 Use 'explore' to examine your surroundings, or 'view_status' to see your full character sheet.
 """
+
+    # Add warning if in multiplayer mode but not logged in
+    if MULTIPLAYER_MODE:
+        session = get_player_session()
+        if not session or not session.is_authenticated:
+            narrative += "\n⚠️ **You're not logged in!** Your score won't be saved to the leaderboard.\nUse `register_player()` or `login()` to compete on the leaderboard."
 
     return {
         "narrative": narrative,
@@ -581,11 +658,21 @@ def attack(target: str, skill: str = "basic_attack") -> dict:
         # Add XP and gold
         total_xp = sum(e.xp_reward for e in room.enemies)
         total_gold = sum(e.gold_reward for e in room.enemies)
+        enemies_killed = len([e for e in room.enemies if e.hp <= 0])
 
         leveled_up, level_messages = ProgressionSystem.add_experience(hero, total_xp)
         ProgressionSystem.add_gold(hero, total_gold)
 
         messages.extend(level_messages)
+
+        # Track score in multiplayer mode
+        if MULTIPLAYER_MODE:
+            session = get_player_session()
+            if session and session.is_authenticated:
+                session.current_run_score += total_xp
+                db.add_score(session.email, total_xp)
+                db.increment_enemies_defeated(session.email, enemies_killed)
+                messages.append(f"\n🏆 **+{total_xp} points!** (Run total: {session.current_run_score:,})")
 
     else:
         # Enemy turn
@@ -951,6 +1038,7 @@ def flee() -> dict:
 def save_game() -> dict:
     """
     Create a checkpoint. Returns save ID for later restoration.
+    In multiplayer mode, saves to cloud if logged in.
 
     Returns:
         Save confirmation with save ID
@@ -960,11 +1048,26 @@ def save_game() -> dict:
     if not game_state:
         return {"error": ERRORS["no_game"]}
 
-    # Generate save ID
+    # Multiplayer mode - save to MongoDB if logged in
+    if MULTIPLAYER_MODE:
+        session = get_player_session()
+        if session and session.is_authenticated:
+            db.save_game_session(
+                session.email,
+                game_state.model_dump(),
+                session.current_run_score
+            )
+            return {
+                "narrative": f"☁️ **Game saved to cloud!**\n\nYour progress is automatically synced.\nCurrent run score: {session.current_run_score:,} points",
+                "state": {"save_id": "cloud", "cloud_save": True}
+            }
+        else:
+            return {"error": "❌ Login required to save in multiplayer mode. Use `login()` first."}
+
+    # Single-player mode - save to local JSON file
     save_id = f"save_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     game_state.save_id = save_id
 
-    # Save to file
     save_dir = Path(__file__).parent / "storage" / "saves"
     save_dir.mkdir(parents=True, exist_ok=True)
 
@@ -980,16 +1083,49 @@ def save_game() -> dict:
 
 
 @mcp.tool()
-def load_game(save_id: str) -> dict:
+def load_game(save_id: str = "") -> dict:
     """
     Restore from a previous checkpoint.
+    In multiplayer mode, loads from cloud if logged in (save_id is ignored).
 
     Args:
-        save_id: Save ID from previous save_game call
+        save_id: Save ID from previous save_game call (single-player mode only)
 
     Returns:
         Load confirmation
     """
+
+    # Multiplayer mode - load from MongoDB if logged in
+    if MULTIPLAYER_MODE:
+        session = get_player_session()
+        if session and session.is_authenticated:
+            saved_session = db.load_game_session(session.email)
+            if not saved_session:
+                return {"error": "❌ No cloud save found. Start a new game with `create_character()`."}
+
+            try:
+                game_state = GameState(**saved_session["game_state"])
+                game_states["default"] = game_state
+                session.current_run_score = saved_session.get("current_run_score", 0)
+
+                hero = game_state.hero
+                return {
+                    "narrative": f"☁️ **Cloud save loaded!**\n\nWelcome back, **{hero.name}**!\n\nLevel {hero.level} {hero.role.title()}\nDepth: {game_state.depth}\nUptime: {hero.uptime}/{hero.max_uptime}\nCurrent run score: {session.current_run_score:,} points",
+                    "state": {
+                        "hero_name": hero.name,
+                        "level": hero.level,
+                        "depth": game_state.depth,
+                        "cloud_save": True
+                    }
+                }
+            except Exception as e:
+                return {"error": f"❌ Failed to load cloud save: {e}"}
+        else:
+            return {"error": "❌ Login required to load in multiplayer mode. Use `login()` first."}
+
+    # Single-player mode - load from local JSON file
+    if not save_id:
+        return {"error": "❌ Please provide a save_id. Example: load_game('save_20250115_143022')"}
 
     save_file = Path(__file__).parent / "storage" / "saves" / f"{save_id}.json"
 
@@ -1191,13 +1327,395 @@ You are now unstoppable. The dungeon trembles at your presence!
     }
 
 
-if __name__ == "__main__":
-    # Run the MCP server
-    print("Integration Quest: Starting mcp.run()...", file=sys.stderr)
+# ============================================================================
+# MULTIPLAYER TOOLS (6 Total - Only available when MULTIPLAYER_MODE=true)
+# ============================================================================
+
+@mcp.tool()
+def register_player(email: str, username: str) -> dict:
+    """
+    Register for the Integration Quest leaderboard with your email.
+    A login token will be sent to your email address.
+
+    Args:
+        email: Your email address (used as your player ID)
+        username: Your display name for the leaderboard (3-20 chars, alphanumeric + underscore)
+
+    Returns:
+        Registration confirmation
+    """
     try:
-        mcp.run()
-    except Exception as e:
-        print(f"Integration Quest: Error in mcp.run(): {e}", file=sys.stderr)
-        import traceback
-        traceback.print_exc(file=sys.stderr)
-        raise
+        require_multiplayer()
+    except ValueError as e:
+        return {"error": str(e)}
+
+    # Validate username
+    valid, error_msg = validate_username(username)
+    if not valid:
+        return {"error": f"❌ Invalid username: {error_msg}"}
+
+    # Check if email already registered
+    if db.get_player(email):
+        return {"error": f"❌ Email '{email}' is already registered. Use login() or refresh_token() if you forgot your token."}
+
+    # Check if username taken
+    if db.get_player_by_username(username):
+        return {"error": f"❌ Username '{username}' is already taken. Please choose another."}
+
+    # Generate token
+    token = generate_token()
+
+    # Create player in database
+    try:
+        db.create_player(email, username, token)
+    except ValueError as e:
+        return {"error": f"❌ Registration failed: {e}"}
+
+    # Send welcome email with token
+    email_sent = email_service.send_welcome_email(email, username, token)
+
+    if email_sent:
+        return {
+            "narrative": f"""✅ **Account Created!**
+
+Welcome to Integration Quest, **{username}**!
+
+📧 A login token has been sent to: {email}
+
+Check your email and use the token to login:
+  `login("{email}", "your-token-here")`
+
+Your token is your password - keep it safe!
+If you ever lose it, use `refresh_token("{email}")` to get a new one.
+""",
+            "state": {"registered": True, "email": email, "username": username}
+        }
+    else:
+        return {
+            "narrative": f"""⚠️ **Account Created, but email failed!**
+
+Your account was created, but we couldn't send the welcome email.
+Please use `refresh_token("{email}")` to get your login token.
+""",
+            "state": {"registered": True, "email_failed": True}
+        }
+
+
+@mcp.tool()
+def login(email: str, token: str) -> dict:
+    """
+    Login to your Integration Quest account to track scores on the leaderboard.
+
+    Args:
+        email: Your registered email address
+        token: Your login token (received via email)
+
+    Returns:
+        Login confirmation with your stats
+    """
+    try:
+        require_multiplayer()
+    except ValueError as e:
+        return {"error": str(e)}
+
+    # Validate token
+    if not db.validate_token(email, token):
+        return {"error": "❌ Invalid email or token. Use refresh_token() if you forgot your token."}
+
+    # Get player profile
+    player = db.get_player(email)
+    if not player:
+        return {"error": "❌ Player not found. Please register first."}
+
+    # Create session
+    session = PlayerSession(
+        email=email,
+        username=player["username"],
+        is_authenticated=True,
+        current_run_score=0
+    )
+    player_sessions["default"] = session
+
+    # Update last active
+    db.update_last_active(email)
+
+    # Load existing game session if available
+    saved_session = db.load_game_session(email)
+    if saved_session:
+        try:
+            game_state = GameState(**saved_session["game_state"])
+            game_states["default"] = game_state
+            session.current_run_score = saved_session.get("current_run_score", 0)
+
+            return {
+                "narrative": f"""✅ **Welcome back, {player['username']}!**
+
+📊 **Your Stats**:
+   - Total Score: {player['total_score']:,} points
+   - Best Run: {player['best_run_score']:,} points
+   - Enemies Defeated: {player['enemies_defeated']:,}
+   - Rank: #{db.get_player_rank(email)}
+
+🎮 **Saved Game Loaded**:
+   - Hero: {game_state.hero.name} (Level {game_state.hero.level} {game_state.hero.role.title()})
+   - Depth: {game_state.depth}
+   - Current Run Score: {session.current_run_score:,} points
+
+Use `view_leaderboard()` to see top players!
+""",
+                "state": {"logged_in": True, "game_loaded": True}
+            }
+        except Exception:
+            pass  # Failed to load saved game, continue without it
+
+    return {
+        "narrative": f"""✅ **Welcome back, {player['username']}!**
+
+📊 **Your Stats**:
+   - Total Score: {player['total_score']:,} points
+   - Best Run: {player['best_run_score']:,} points
+   - Enemies Defeated: {player['enemies_defeated']:,}
+   - Rank: #{db.get_player_rank(email)}
+
+🎮 No saved game found. Use `create_character()` to start a new adventure!
+
+Use `view_leaderboard()` to see top players!
+""",
+        "state": {"logged_in": True, "game_loaded": False}
+    }
+
+
+@mcp.tool()
+def refresh_token(email: str) -> dict:
+    """
+    Request a new login token. The new token will be sent to your email.
+    Your old token will no longer work.
+
+    Args:
+        email: Your registered email address
+
+    Returns:
+        Confirmation that a new token was sent
+    """
+    try:
+        require_multiplayer()
+    except ValueError as e:
+        return {"error": str(e)}
+
+    # Check if email is registered
+    player = db.get_player(email)
+    if not player:
+        return {"error": f"❌ Email '{email}' is not registered. Use register_player() to create an account."}
+
+    # Generate new token
+    new_token = generate_token()
+
+    # Update token in database
+    db.update_token(email, new_token)
+
+    # Send email with new token
+    email_sent = email_service.send_token_refresh_email(email, player["username"], new_token)
+
+    if email_sent:
+        return {
+            "narrative": f"""✅ **New Token Sent!**
+
+A new login token has been sent to: {email}
+
+Your old token no longer works.
+Check your email and use the new token to login.
+""",
+            "state": {"token_refreshed": True}
+        }
+    else:
+        return {"error": "❌ Failed to send email. Please try again later."}
+
+
+@mcp.tool()
+def logout() -> dict:
+    """
+    Logout from your Integration Quest account.
+    Your current game will be saved automatically.
+
+    Returns:
+        Logout confirmation
+    """
+    try:
+        require_multiplayer()
+    except ValueError as e:
+        return {"error": str(e)}
+
+    session = get_player_session()
+    if not session or not session.is_authenticated:
+        return {"error": "❌ You're not logged in."}
+
+    # Save game state if exists
+    game_state = get_or_create_game_state()
+    if game_state:
+        db.save_game_session(
+            session.email,
+            game_state.model_dump(),
+            session.current_run_score
+        )
+
+    # Finalize run score
+    db.finalize_run(session.email, session.current_run_score)
+
+    # Clear session
+    username = session.username
+    if "default" in player_sessions:
+        del player_sessions["default"]
+
+    return {
+        "narrative": f"""👋 **Goodbye, {username}!**
+
+Your game has been saved and your run score recorded.
+See you next time, Integration Hero!
+""",
+        "state": {"logged_out": True}
+    }
+
+
+@mcp.tool()
+def view_leaderboard(limit: int = 10) -> dict:
+    """
+    View the Integration Quest leaderboard.
+    See the top players ranked by total score.
+
+    Args:
+        limit: Number of players to show (default: 10, max: 50)
+
+    Returns:
+        Leaderboard with top players
+    """
+    try:
+        require_multiplayer()
+    except ValueError as e:
+        return {"error": str(e)}
+
+    limit = min(limit, 50)  # Cap at 50
+
+    leaderboard = db.get_leaderboard(limit)
+
+    if not leaderboard:
+        return {
+            "narrative": """🏆 **INTEGRATION QUEST LEADERBOARD**
+
+No players yet! Be the first to register and claim the top spot!
+
+Use `register_player()` to join the competition.
+""",
+            "state": {"leaderboard": []}
+        }
+
+    # Format leaderboard
+    lines = ["🏆 **INTEGRATION QUEST LEADERBOARD**", ""]
+
+    # Get current player for highlighting
+    session = get_player_session()
+    current_username = session.username if session and session.is_authenticated else None
+
+    for i, player in enumerate(leaderboard, 1):
+        rank_emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
+        you_marker = " ← YOU" if player["username"] == current_username else ""
+        lines.append(
+            f"  {rank_emoji} **{player['username']}** — {player['total_score']:,} pts ({player['enemies_defeated']:,} kills){you_marker}"
+        )
+
+    # Show current player's rank if not in top
+    if current_username:
+        in_top = any(p["username"] == current_username for p in leaderboard)
+        if not in_top and session:
+            rank = db.get_player_rank(session.email)
+            player = db.get_player(session.email)
+            if player:
+                lines.append("")
+                lines.append(f"  ... ")
+                lines.append(f"  {rank}. **{current_username}** — {player['total_score']:,} pts ← YOU")
+
+    return {
+        "narrative": "\n".join(lines),
+        "state": {"leaderboard": leaderboard}
+    }
+
+
+@mcp.tool()
+def view_my_stats() -> dict:
+    """
+    View your personal stats and leaderboard rank.
+    Requires being logged in.
+
+    Returns:
+        Your detailed player statistics
+    """
+    try:
+        require_multiplayer()
+    except ValueError as e:
+        return {"error": str(e)}
+
+    session = get_player_session()
+    if not session or not session.is_authenticated:
+        return {"error": "❌ You're not logged in. Use login() first."}
+
+    player = db.get_player(session.email)
+    if not player:
+        return {"error": "❌ Player profile not found."}
+
+    rank = db.get_player_rank(session.email)
+
+    return {
+        "narrative": f"""📊 **YOUR STATS — {player['username']}**
+
+🏆 **Rank**: #{rank}
+⭐ **Total Score**: {player['total_score']:,} points
+🎯 **Best Run**: {player['best_run_score']:,} points
+💀 **Enemies Defeated**: {player['enemies_defeated']:,}
+
+📧 **Email**: {session.email}
+🎮 **Current Run Score**: {session.current_run_score:,} points
+
+Keep defeating enemies to climb the leaderboard!
+""",
+        "state": {
+            "rank": rank,
+            "total_score": player["total_score"],
+            "best_run_score": player["best_run_score"],
+            "enemies_defeated": player["enemies_defeated"],
+            "current_run_score": session.current_run_score
+        }
+    }
+
+
+if __name__ == "__main__":
+    # Force UTF-8 encoding for Windows console
+    if sys.platform == 'win32':
+        if sys.stdout.encoding != 'utf-8':
+            sys.stdout.reconfigure(encoding='utf-8')
+        if sys.stderr.encoding != 'utf-8':
+            sys.stderr.reconfigure(encoding='utf-8')
+
+    print("""
+===============================================================
+
+     ** INTEGRATION QUEST: MCP SERVER **
+
+     "Connect the disconnected. Automate the manual."
+
+     Server starting...
+
+===============================================================
+""")
+
+    # Check if a save was loaded
+    if game_states.get("default"):
+        hero = game_states["default"].hero
+        print(f"✅ Auto-loaded save: {hero.name} (Level {hero.level} {hero.role.title()})")
+        print(f"   Depth: {game_states['default'].depth} | Uptime: {hero.uptime}/{hero.max_uptime}")
+    else:
+        print("No save found. Create a character to begin your quest!")
+
+    print("\n🎮 Server ready! Connect via MCP client at http://localhost:8000/mcp")
+    print("=" * 63 + "\n")
+
+    # Run the MCP server in remote mode with streamable HTTP transport
+    mcp.run(transport="streamable-http", path="/mcp")

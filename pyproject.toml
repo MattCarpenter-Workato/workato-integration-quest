@@ -12,6 +12,11 @@ dependencies = [
     "python-dice>=2.0.0",
     "uvicorn>=0.27.0",
     "starlette>=0.36.0",
+    # Multiplayer dependencies (always installed for easy mode switching)
+    "pymongo>=4.6.0",
+    "sendgrid>=6.11.0",
+    "dnspython>=2.4.0",
+    "email-validator>=2.1.0",
 ]
 
 [project.optional-dependencies]

@@ -17,6 +17,7 @@ A Workato-themed text-based RPG implemented as a Python MCP (Model Context Proto
 - [The Story](#the-story)
 - [Installation](#installation)
 - [Playing the Game](#playing-the-game)
+- [Multiplayer Mode](#multiplayer-mode)
 - [Character Classes](#character-classes)
 - [Enemies](#enemies)
 - [Items](#items)
@@ -73,17 +74,14 @@ The choice is yours. The legacy systems await.
 
 ### Quick Start
 
-Choose your preferred play mode:
+Start the MCP server:
 
 ```bash
-# Terminal Mode (Interactive CLI)
-uv run python play.py
-
-# Local MCP Server (for Claude Desktop)
+# Single-player mode (default)
 uv run python server.py
 
-# Remote MCP Server (HTTP)
-uv run python remote_server.py
+# Multiplayer mode (with leaderboard)
+MULTIPLAYER_MODE=true uv run python server.py
 ```
 
 ### New Player Guide
@@ -92,98 +90,22 @@ First time playing? Use the AI Game Guide to learn the mechanics. Copy the conte
 
 ### Play Modes
 
-#### Terminal Mode
-
-Play directly in your terminal with an interactive command-line interface:
-
-```bash
-uv run python play.py
-```
-
-Example session:
-
-```
->>> explore
-🏛️ THE INTEGRATION HUB
-You stand at the entrance...
-
->>> attack bug
-🎲 Rolled 1d4: [3] = 3
-⚔️ You hit Bug for 3 damage!
-
->>> status
-📊 Alex the Mage - Level 1
-❤️ Uptime: 90/90
-```
-
-#### Claude Desktop (MCP Server)
-
-Add to your `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "integration-quest": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/path/to/workato-integration-quest",
-        "run",
-        "python",
-        "server.py"
-      ]
-    }
-  }
-}
-```
-
-> **Important:** Update the path to match your actual installation location.
-
-#### Claude Code (CLI)
-
-Add the MCP server to your Claude Code configuration:
-
-```bash
-claude mcp add integration-quest -- uv --directory /path/to/workato-integration-quest run python server.py
-```
-
-Or manually edit `~/.claude/settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "integration-quest": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/path/to/workato-integration-quest",
-        "run",
-        "python",
-        "server.py"
-      ]
-    }
-  }
-}
-```
-
-After configuration, restart Claude Code and the game tools will be available.
-
-#### Remote MCP Server
+#### Remote MCP Server (Recommended)
 
 Run the game as a remote MCP server accessible over HTTP:
 
 ```bash
-uv run python remote_server.py
+uv run python server.py
 ```
 
-Connect via Claude Desktop:
+Connect via Claude Desktop using `mcp-remote`:
 
 ```json
 {
   "mcpServers": {
-    "integration-quest-remote": {
+    "integration-quest": {
       "command": "npx",
-      "args": ["mcp-remote", "http://localhost:8000/sse"]
+      "args": ["mcp-remote", "http://localhost:8000/mcp"]
     }
   }
 }
@@ -195,6 +117,7 @@ Connect via Claude Desktop:
 |----------|---------|-------------|
 | `MCP_SERVER_PORT` | `8000` | Server port |
 | `MCP_SERVER_HOST` | `0.0.0.0` | Server host |
+| `MULTIPLAYER_MODE` | `false` | Enable multiplayer leaderboard |
 
 #### FastMCP Cloud (Hosted)
 
@@ -202,12 +125,14 @@ Deploy Integration Quest to the cloud for free with [FastMCP Cloud](https://fast
 
 1. Fork this repository to your GitHub account
 2. Sign up at [fastmcp.cloud](https://fastmcp.cloud/) with GitHub
-3. Create a new project with entrypoint: `remote_server.py:mcp`
+3. Create a new project with entrypoint: `server.py:mcp`
 4. Connect via: `npx mcp-remote https://your-project.fastmcp.app/mcp`
 
 See [DEPLOY_FASTMCP_CLOUD.md](DEPLOY_FASTMCP_CLOUD.md) for detailed instructions.
 
 ### Available Commands
+
+#### Core Game Commands
 
 | Command | Description |
 |---------|-------------|
@@ -225,6 +150,54 @@ See [DEPLOY_FASTMCP_CLOUD.md](DEPLOY_FASTMCP_CLOUD.md) for detailed instructions
 | `flee` | Attempt to escape combat |
 | `save_game` | Create a checkpoint |
 | `load_game` | Restore from checkpoint |
+
+#### Multiplayer Commands (requires `MULTIPLAYER_MODE=true`)
+
+| Command | Description |
+|---------|-------------|
+| `register_player` | Register with email for leaderboard |
+| `login` | Login with email and token |
+| `refresh_token` | Get a new token via email |
+| `logout` | End session and save progress |
+| `view_leaderboard` | See top players |
+| `view_my_stats` | See your stats and rank |
+
+## Multiplayer Mode
+
+Integration Quest supports competitive multiplayer through a shared leaderboard. Players compete by earning points from defeating enemies.
+
+### Enabling Multiplayer
+
+Set the following environment variables:
+
+```bash
+export MULTIPLAYER_MODE=true
+export MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/integration_quest
+export SENDGRID_API_KEY=SG.xxxxx
+export FROM_EMAIL=noreply@yourdomain.com
+```
+
+### How It Works
+
+1. **Register** with your email to create an account
+2. A **login token** is sent to your email (this is your password)
+3. **Login** with your email and token to start tracking scores
+4. **Defeat enemies** to earn points (harder enemies = more points)
+5. **Climb the leaderboard** and compete with other players!
+
+### Point Values
+
+| Enemy Tier | Points |
+|------------|--------|
+| Common | 8-12 |
+| Uncommon | 35-45 |
+| Rare | 65-80 |
+| Boss | 150-750 |
+
+### Required Services
+
+- **MongoDB Atlas** — Free 512MB cluster for player data ([mongodb.com/atlas](https://mongodb.com/atlas))
+- **SendGrid** — Free tier for email authentication ([sendgrid.com](https://sendgrid.com))
 
 ## Character Classes
 
@@ -396,32 +369,37 @@ See [DEPLOY_FASTMCP_CLOUD.md](DEPLOY_FASTMCP_CLOUD.md) for detailed instructions
 
 ```
 workato-integration-quest/
-├── server.py                 # FastMCP server + all 14 tools
-├── play.py                   # Terminal mode CLI interface
-├── remote_server.py          # Remote MCP server (HTTP/SSE)
+├── server.py                 # Main entry point (HTTP MCP server + all game tools)
 ├── config.py                 # Game configuration and constants
 ├── pyproject.toml            # Python project configuration
-├── requirements.txt          # Python dependencies
 ├── game_guide_prompt.md      # Full AI guide system prompt
 ├── game_guide_prompt_short.md # Condensed guide prompt
 ├── models/
 │   ├── hero.py               # Hero, stats, inventory
 │   ├── combat.py             # Combat state, enemies
 │   ├── world.py              # Room, dungeon map
-│   └── items.py              # Weapons, armor, consumables
+│   ├── items.py              # Weapons, armor, consumables
+│   └── player.py             # Player profile (multiplayer)
 ├── systems/
 │   ├── combat.py             # Damage calc, turn order
 │   ├── generation.py         # Procedural dungeon generation
 │   ├── progression.py        # XP, leveling, skill unlocks
 │   ├── effects.py            # Status effect processing
-│   └── dice.py               # Dice rolling utilities
+│   ├── dice.py               # Dice rolling utilities
+│   ├── database.py           # MongoDB operations (multiplayer)
+│   └── email_service.py      # SendGrid emails (multiplayer)
 ├── data/
 │   ├── enemies.json          # 20+ enemy definitions
 │   ├── items.json            # Weapons, armor, consumables
 │   ├── descriptions.json     # Room templates
 │   └── skills.json           # Class skills
 └── tests/
-    ├── test_dice.py          # Dice rolling unit tests
+    ├── conftest.py           # Shared test fixtures
+    ├── test_models.py        # Model unit tests
+    ├── test_systems.py       # Systems unit tests
+    ├── test_combat.py        # Combat system tests
+    ├── test_game_tools.py    # MCP tool integration tests
+    ├── test_dice.py          # Dice rolling tests
     └── test_progression.py   # Progression system tests
 ```
 
@@ -430,12 +408,33 @@ workato-integration-quest/
 ### Running Tests
 
 ```bash
-# Run all function tests (31 tests)
-uv run python test_all_functions.py
+# Run all tests
+uv run pytest tests/ -v
 
-# Run unit tests with pytest
-uv run pytest tests/
+# Run specific test modules
+uv run pytest tests/test_models.py -v      # Model unit tests
+uv run pytest tests/test_systems.py -v     # Systems unit tests
+uv run pytest tests/test_combat.py -v      # Combat system tests
+uv run pytest tests/test_game_tools.py -v  # MCP tool integration tests
+
+# Run with coverage report
+uv run pytest tests/ --cov=. --cov-report=html
+
+# Run tests matching a pattern
+uv run pytest tests/ -k "test_hero" -v
 ```
+
+### Test Structure
+
+| Test File | Description |
+|-----------|-------------|
+| `conftest.py` | Shared fixtures (heroes, items, enemies, game states) |
+| `test_models.py` | Hero, Item, Enemy, Room, GameState model tests |
+| `test_systems.py` | Dice, Progression, Effects, Generation system tests |
+| `test_combat.py` | Combat system initialization, attacks, damage calculation |
+| `test_game_tools.py` | MCP tool integration tests (character creation, combat, items) |
+| `test_dice.py` | Legacy dice rolling tests |
+| `test_progression.py` | Legacy progression system tests |
 
 ### Adding Content
 
@@ -506,6 +505,8 @@ Built with:
 - [FastMCP 2.0](https://github.com/jlowin/fastmcp) — Python MCP server framework
 - [Pydantic](https://docs.pydantic.dev/) — Data validation
 - [uv](https://docs.astral.sh/uv/) — Fast Python package manager
+- [MongoDB Atlas](https://mongodb.com/atlas) — Cloud database (multiplayer)
+- [SendGrid](https://sendgrid.com) — Email service (multiplayer)
 
 ---
 

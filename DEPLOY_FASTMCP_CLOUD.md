@@ -40,10 +40,10 @@ FastMCP Cloud is a hosting platform specifically designed for MCP (Model Context
 
    | Setting | Value |
    |---------|-------|
-   | **Server Entrypoint** | `remote_server.py:mcp` |
+   | **Server Entrypoint** | `server.py:mcp` |
    | **Branch** | `main` |
 
-   > The entrypoint format is `filename:variable_name` where `mcp` is the FastMCP instance in `remote_server.py`.
+   > The entrypoint format is `filename:variable_name` where `mcp` is the FastMCP instance in `server.py`.
 
 4. Click **Deploy**
 
@@ -101,7 +101,7 @@ If you need to configure environment variables (not required for basic deploymen
 
 - Ensure `pyproject.toml` is present and correctly formatted
 - Check that all dependencies are listed
-- Verify the entrypoint (`remote_server.py:mcp`) is correct
+- Verify the entrypoint (`server.py:mcp`) is correct
 
 ### Server Not Responding
 
@@ -113,7 +113,7 @@ If you need to configure environment variables (not required for basic deploymen
 
 - Confirm the deployment completed successfully
 - Try redeploying from the dashboard
-- Check that `remote_server.py` exports the `mcp` variable
+- Check that `server.py` exports the `mcp` variable
 
 ## Updating Your Deployment
 
