@@ -43,9 +43,9 @@ if __name__ == "__main__":
     else:
         print("No save found. Create a character to begin your quest!")
 
-    print("\n🎮 Server ready! Connect via MCP client at http://localhost:8000/mcp/v1")
+    print("\n🎮 Server ready! Connect via MCP client at http://localhost:8000/sse")
     print("=" * 63 + "\n")
 
-    # Run the MCP server in remote mode with streamable transport
+    # Run the MCP server in remote mode with SSE transport
     # This will start an HTTP server that clients can connect to
-    mcp.run(transport="streamable")
+    mcp.run(transport="sse")

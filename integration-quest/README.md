@@ -128,7 +128,7 @@ Then restart Claude Desktop and interact with Claude to use the game tools!
 
 ### Option 3: Remote MCP Server (HTTP)
 
-Run the game as a remote MCP server that can be accessed over HTTP using streamable transport:
+Run the game as a remote MCP server that can be accessed over HTTP using SSE (Server-Sent Events) transport:
 
 ```bash
 uv run python remote_server.py
@@ -148,13 +148,17 @@ Add to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "integration-quest-remote": {
-      "url": "http://localhost:8000/mcp/v1"
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "http://localhost:8000/sse"
+      ]
     }
   }
 }
 ```
 
-Or connect from any MCP client using the URL: `http://localhost:8000/mcp/v1`
+Or connect from any MCP client using the SSE endpoint: `http://localhost:8000/sse`
 
 **Configuration Options:**
 
