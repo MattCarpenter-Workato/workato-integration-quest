@@ -281,7 +281,7 @@ This project is built for the Workato community as an educational and entertaini
 ## 🙏 Credits
 
 Created with:
-- **FastMCP 2.0** - MCP server framework by [@jlowin](https://github.com/jlowin)
+- **FastMCP 2.0** - MCP server framework
 - **Pydantic** - Data validation
 - **Love for Integration** - The Workato spirit
 
