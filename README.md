@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Integration-Quest-Logo.png" alt="Integration Quest Logo" width="400">
+</p>
+
 # Integration Quest: The Workato RPG
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
