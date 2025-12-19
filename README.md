@@ -82,7 +82,7 @@ uv run python play.py
 # Local MCP Server (for Claude Desktop)
 uv run python server.py
 
-# Remote MCP Server (HTTP/SSE)
+# Remote MCP Server (HTTP)
 uv run python remote_server.py
 ```
 
