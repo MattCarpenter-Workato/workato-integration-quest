@@ -196,6 +196,17 @@ Connect via Claude Desktop:
 | `MCP_SERVER_PORT` | `8000` | Server port |
 | `MCP_SERVER_HOST` | `0.0.0.0` | Server host |
 
+#### FastMCP Cloud (Hosted)
+
+Deploy Integration Quest to the cloud for free with [FastMCP Cloud](https://fastmcp.cloud/):
+
+1. Fork this repository to your GitHub account
+2. Sign up at [fastmcp.cloud](https://fastmcp.cloud/) with GitHub
+3. Create a new project with entrypoint: `remote_server.py:mcp`
+4. Connect via: `npx mcp-remote https://your-project.fastmcp.app/mcp`
+
+See [DEPLOY_FASTMCP_CLOUD.md](DEPLOY_FASTMCP_CLOUD.md) for detailed instructions.
+
 ### Available Commands
 
 | Command | Description |
