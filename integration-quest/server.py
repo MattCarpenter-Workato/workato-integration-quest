@@ -6,13 +6,19 @@ A Workato-themed text-based RPG where players are Integration Heroes
 battling through legacy systems, API errors, and enterprise chaos.
 """
 
+import sys
 import json
 import random
 from pathlib import Path
 from typing import Literal, Optional, Dict
 from datetime import datetime
 
+# Debug logging to stderr
+print("Integration Quest: Starting server initialization...", file=sys.stderr)
+
 from fastmcp import FastMCP
+
+print("Integration Quest: FastMCP imported successfully", file=sys.stderr)
 
 # Import models
 from models.hero import Hero, StatusEffect
@@ -34,8 +40,12 @@ from config import (
     REST_ENCOUNTER_CHANCE, FLEE_BASE_CHANCE
 )
 
+print("Integration Quest: All imports successful", file=sys.stderr)
+
 # Initialize FastMCP server
 mcp = FastMCP("integration-quest")
+
+print("Integration Quest: FastMCP server created", file=sys.stderr)
 
 # Game state storage (in-memory, keyed by session)
 game_states: Dict[str, GameState] = {}
@@ -1008,4 +1018,11 @@ def load_game(save_id: str) -> dict:
 
 if __name__ == "__main__":
     # Run the MCP server
-    mcp.run()
+    print("Integration Quest: Starting mcp.run()...", file=sys.stderr)
+    try:
+        mcp.run()
+    except Exception as e:
+        print(f"Integration Quest: Error in mcp.run(): {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        raise
