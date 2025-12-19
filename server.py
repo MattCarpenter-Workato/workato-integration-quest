@@ -20,6 +20,10 @@ from pathlib import Path
 from typing import Literal, Optional, Dict
 from datetime import datetime
 
+# Load .env file for local development (before any env var access)
+from dotenv import load_dotenv
+load_dotenv()
+
 # Debug logging to stderr
 print("Integration Quest: Starting server initialization...", file=sys.stderr)
 
