@@ -1038,37 +1038,119 @@ def enter_diagnostic_code(code: str) -> dict:
     import hashlib
     code_hash = hashlib.md5(code.encode()).hexdigest()
     if code_hash == "c79c28c71f0363cc52f32fb29e130222":
-        # Apply system calibration overrides
-        hero.throughput = 999
-        hero.formula_power = 999
-        hero.rate_agility = 999
-        hero.error_resilience = 999
+        # Toggle god mode
+        if hero.god_mode_active:
+            # DISABLE GOD MODE - Restore original stats
+            if hero.saved_stats:
+                hero.throughput = hero.saved_stats["throughput"]
+                hero.formula_power = hero.saved_stats["formula_power"]
+                hero.rate_agility = hero.saved_stats["rate_agility"]
+                hero.error_resilience = hero.saved_stats["error_resilience"]
+                hero.max_uptime = hero.saved_stats["max_uptime"]
+                hero.uptime = hero.saved_stats["uptime"]
+                hero.max_api_credits = hero.saved_stats["max_api_credits"]
+                hero.api_credits = hero.saved_stats["api_credits"]
+                hero.gold = hero.saved_stats["gold"]
+                hero.level = hero.saved_stats["level"]
+                hero.xp = hero.saved_stats["xp"]
 
-        # Reset resource pools to test values
-        hero.max_uptime = 9999
-        hero.uptime = 9999
-        hero.max_api_credits = 9999
-        hero.api_credits = 9999
+                # Remove god mode status effect
+                hero.status_effects = [e for e in hero.status_effects if e.name != "God Mode"]
 
-        # Initialize test economy values
-        hero.gold = 999999
-        hero.level = 99
-        hero.xp = 999999
+                # Clear saved stats and flag
+                hero.saved_stats = None
+                hero.god_mode_active = False
 
-        # Apply persistent test flag
-        test_flag = StatusEffect(
-            name="God Mode",
-            effect_type="transformed",
-            duration=-1,
-            description="Ascended beyond mortal limitations",
-            stat_modifier={"all": 999}
-        )
+                narrative = f"""🌙 **RETURNING TO MORTAL FORM** 🌙
 
-        # Clear existing flags and set new test state
-        hero.status_effects = [e for e in hero.status_effects if e.name != "God Mode"]
-        hero.status_effects.append(test_flag)
+The legendary power fades as {hero.name} returns to their natural state...
 
-        narrative = f"""⚡ **LEGENDARY POWER ACTIVATED** ⚡
+**GOD MODE DISABLED**
+
+📊 **RESTORED STATS**:
+   - Throughput: {hero.throughput}
+   - Formula Power: {hero.formula_power}
+   - Rate Agility: {hero.rate_agility}
+   - Error Resilience: {hero.error_resilience}
+
+❤️ **Uptime**: {hero.uptime}/{hero.max_uptime}
+💙 **API Credits**: {hero.api_credits}/{hero.max_api_credits}
+⭐ **Level**: {hero.level}
+💰 **Gold**: {hero.gold}
+
+✨ **Status**: Normal (God Mode effect removed)
+
+You are once again bound by mortal limitations. But you are wiser for the experience.
+"""
+
+                return {
+                    "narrative": narrative,
+                    "state": {
+                        "god_mode": False,
+                        "level": hero.level,
+                        "uptime": hero.uptime,
+                        "max_uptime": hero.max_uptime,
+                        "api_credits": hero.api_credits,
+                        "max_api_credits": hero.max_api_credits
+                    }
+                }
+            else:
+                # No saved stats to restore (shouldn't happen, but handle gracefully)
+                hero.god_mode_active = False
+                return {
+                    "narrative": "⚠️ God mode disabled, but no saved stats found to restore.",
+                    "state": {"god_mode": False}
+                }
+        else:
+            # ENABLE GOD MODE - Save current stats first
+            hero.saved_stats = {
+                "throughput": hero.throughput,
+                "formula_power": hero.formula_power,
+                "rate_agility": hero.rate_agility,
+                "error_resilience": hero.error_resilience,
+                "max_uptime": hero.max_uptime,
+                "uptime": hero.uptime,
+                "max_api_credits": hero.max_api_credits,
+                "api_credits": hero.api_credits,
+                "gold": hero.gold,
+                "level": hero.level,
+                "xp": hero.xp
+            }
+
+            # Apply system calibration overrides
+            hero.throughput = 999
+            hero.formula_power = 999
+            hero.rate_agility = 999
+            hero.error_resilience = 999
+
+            # Reset resource pools to test values
+            hero.max_uptime = 9999
+            hero.uptime = 9999
+            hero.max_api_credits = 9999
+            hero.api_credits = 9999
+
+            # Initialize test economy values
+            hero.gold = 999999
+            hero.level = 99
+            hero.xp = 999999
+
+            # Apply persistent test flag
+            test_flag = StatusEffect(
+                name="God Mode",
+                effect_type="transformed",
+                duration=-1,
+                description="Ascended beyond mortal limitations",
+                stat_modifier={"all": 999}
+            )
+
+            # Clear existing flags and set new test state
+            hero.status_effects = [e for e in hero.status_effects if e.name != "God Mode"]
+            hero.status_effects.append(test_flag)
+
+            # Set god mode flag
+            hero.god_mode_active = True
+
+            narrative = f"""⚡ **LEGENDARY POWER ACTIVATED** ⚡
 
 🌟 The ancient Integration Architect's blessing flows through {hero.name}!
 ✨ You feel the power of infinite connections coursing through your circuits!
@@ -1086,22 +1168,22 @@ def enter_diagnostic_code(code: str) -> dict:
 ⭐ **Level**: {hero.level}
 💰 **Gold**: {hero.gold}
 
-🔱 **Status**: GOD MODE (Permanent)
+🔱 **Status**: GOD MODE (Active - use code again to disable)
 
 You are now unstoppable. The dungeon trembles at your presence!
 """
 
-        return {
-            "narrative": narrative,
-            "state": {
-                "god_mode": True,
-                "level": hero.level,
-                "uptime": hero.uptime,
-                "max_uptime": hero.max_uptime,
-                "api_credits": hero.api_credits,
-                "max_api_credits": hero.max_api_credits
+            return {
+                "narrative": narrative,
+                "state": {
+                    "god_mode": True,
+                    "level": hero.level,
+                    "uptime": hero.uptime,
+                    "max_uptime": hero.max_uptime,
+                    "api_credits": hero.api_credits,
+                    "max_api_credits": hero.max_api_credits
+                }
             }
-        }
 
     return {
         "narrative": f"🔧 Diagnostic code '{code}' not recognized. System nominal.",

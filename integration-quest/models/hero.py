@@ -49,6 +49,10 @@ class Hero(BaseModel):
     # Meta
     recipe_fragments: int = Field(default=0, description="Collect 3 for +5 max Uptime")
 
+    # God mode tracking
+    god_mode_active: bool = Field(default=False, description="Whether god mode is currently active")
+    saved_stats: Optional[dict] = Field(default=None, description="Original stats before god mode")
+
     def calculate_max_uptime(self) -> int:
         """Calculate max HP based on CON and class"""
         from config import BASE_STATS, CLASS_BONUSES
