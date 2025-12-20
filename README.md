@@ -150,6 +150,7 @@ See [deploy-fastmcp-cloud.md](deploy-fastmcp-cloud.md) for detailed instructions
 | `flee` | Attempt to escape combat |
 | `save_game` | Create a checkpoint |
 | `load_game` | Restore from checkpoint |
+| `restore_previous_character` | Restore your backed-up character |
 
 #### Multiplayer Commands (requires `MULTIPLAYER_MODE=true`)
 
@@ -364,6 +365,33 @@ export FROM_EMAIL=noreply@yourdomain.com
 | Treasure | Data Lake | Perfectly normalized JSON |
 | Trap | Legacy System | SOAP envelopes and XML namespaces |
 | Boss | Core System | Ultimate integrations |
+
+### Character Management
+
+Integration Quest supports one active character at a time, with automatic backup when switching characters.
+
+#### Creating a New Character
+
+When you create a new character while having an existing one:
+
+1. **Warning**: You'll see a warning showing your current character's details
+2. **Confirmation**: Call `create_character` again with the same parameters to confirm
+3. **Backup**: Your previous character is automatically saved
+
+#### Restoring a Previous Character
+
+Use `restore_previous_character()` to switch back to your backed-up character:
+
+- Your current character will be deleted
+- Your previous character becomes active
+- Only one backup slot exists (creating another new character overwrites the backup)
+
+#### Scores and Leaderboard
+
+In multiplayer mode:
+- Scores are tied to your **player account**, not individual characters
+- Switching characters doesn't affect your total score
+- Your `current_run_score` is saved with each character
 
 ## Project Structure
 

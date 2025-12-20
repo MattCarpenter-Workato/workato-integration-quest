@@ -94,6 +94,10 @@ game_states: Dict[str, GameState] = {}
 # Player sessions storage (multiplayer mode only)
 player_sessions: Dict[str, PlayerSession] = {}
 
+# Pending character creation confirmations (for two-call confirmation flow)
+# Key: session_id, Value: {"name": str, "role": str}
+pending_character_creation: Dict[str, Dict[str, str]] = {}
+
 # Initialize dungeon generator
 dungeon_gen = DungeonGenerator()
 
@@ -270,6 +274,69 @@ def create_character(
     Returns:
         Hero creation confirmation and starting stats
     """
+    session_id = "default"
+    existing_game = get_or_create_game_state(session_id)
+
+    # Check if player has an existing character - require confirmation
+    if existing_game:
+        existing_hero = existing_game.hero
+        pending = pending_character_creation.get(session_id)
+
+        # Check if this is a confirmation call (same name and role as pending)
+        if pending and pending["name"] == name and pending["role"] == role:
+            # Confirmed - proceed with backup and creation
+            pending_character_creation.pop(session_id, None)
+
+            # Backup current character before replacing
+            if MULTIPLAYER_MODE:
+                session = get_player_session()
+                if session and session.is_authenticated:
+                    db.save_previous_character(
+                        session.email,
+                        existing_game.model_dump(),
+                        session.current_run_score
+                    )
+            else:
+                # Single-player: backup to JSON file
+                backup_file = Path(__file__).parent / "storage" / "saves" / "previous_character.json"
+                backup_file.parent.mkdir(parents=True, exist_ok=True)
+                with open(backup_file, "w", encoding="utf-8") as f:
+                    json.dump({
+                        "game_state": existing_game.model_dump(),
+                        "run_score": 0,
+                        "backed_up_at": datetime.now().isoformat()
+                    }, f, indent=2)
+        else:
+            # First call - show warning and require confirmation
+            pending_character_creation[session_id] = {"name": name, "role": role}
+
+            role_names = {
+                "warrior": "Integration Engineer",
+                "mage": "Recipe Builder",
+                "rogue": "API Hacker",
+                "cleric": "Support Engineer"
+            }
+
+            warning = f"""⚠️ **Warning**: You already have an active character!
+
+**Current Character**: Level {existing_hero.level} {role_names.get(existing_hero.role, existing_hero.role)} "{existing_hero.name}" (Depth {existing_game.depth})
+
+Creating a new character will:
+- **Back up** your current character (restorable later)
+- Start fresh with a new hero
+
+Your previous character can be restored with `restore_previous_character()`.
+
+**To confirm**, call `create_character("{name}", "{role}")` again."""
+
+            return {
+                "narrative": warning,
+                "state": {
+                    "requires_confirmation": True,
+                    "existing_hero": existing_hero.name,
+                    "existing_level": existing_hero.level
+                }
+            }
 
     # Create new game state
     game_state = create_new_game_state(name, role)
@@ -391,6 +458,33 @@ def view_status() -> dict:
 {"⚔️ **IN COMBAT**" if game_state.is_in_combat() else ""}
 """
 
+    # Check for previous character backup
+    has_backup = False
+    backup_info = ""
+    if MULTIPLAYER_MODE:
+        session = get_player_session()
+        if session and session.is_authenticated:
+            previous = db.get_previous_character(session.email)
+            if previous:
+                has_backup = True
+                prev_state = previous.get("game_state", {})
+                prev_hero = prev_state.get("hero", {})
+                backup_info = f"\n🔄 **Previous Character Available**: Level {prev_hero.get('level', '?')} {prev_hero.get('role', '?').title()} \"{prev_hero.get('name', '?')}\"\n   Use `restore_previous_character()` to switch back."
+    else:
+        backup_file = Path(__file__).parent / "storage" / "saves" / "previous_character.json"
+        if backup_file.exists():
+            try:
+                with open(backup_file, "r", encoding="utf-8") as f:
+                    backup_data = json.load(f)
+                prev_hero = backup_data.get("game_state", {}).get("hero", {})
+                has_backup = True
+                backup_info = f"\n🔄 **Previous Character Available**: Level {prev_hero.get('level', '?')} {prev_hero.get('role', '?').title()} \"{prev_hero.get('name', '?')}\"\n   Use `restore_previous_character()` to switch back."
+            except Exception:
+                pass
+
+    if backup_info:
+        narrative += backup_info
+
     return {
         "narrative": narrative,
         "state": {
@@ -398,7 +492,8 @@ def view_status() -> dict:
             "uptime": hero.uptime,
             "max_uptime": hero.max_uptime,
             "api_credits": hero.api_credits,
-            "in_combat": game_state.is_in_combat()
+            "in_combat": game_state.is_in_combat(),
+            "has_previous_character": has_backup
         }
     }
 
@@ -1154,6 +1249,109 @@ def load_game(save_id: str = "") -> dict:
             "depth": game_state.depth
         }
     }
+
+
+@mcp.tool()
+def restore_previous_character() -> dict:
+    """
+    Restore your previously backed-up character.
+
+    When you create a new character while having an existing one, your old character
+    is automatically backed up. Use this tool to swap back to that character.
+
+    WARNING: This will delete your current character!
+
+    Returns:
+        Restoration confirmation or error if no backup exists
+    """
+    role_names = {
+        "warrior": "Integration Engineer",
+        "mage": "Recipe Builder",
+        "rogue": "API Hacker",
+        "cleric": "Support Engineer"
+    }
+
+    # Multiplayer mode - restore from MongoDB
+    if MULTIPLAYER_MODE:
+        session = get_player_session()
+        if not session or not session.is_authenticated:
+            return {"error": "❌ Login required to restore in multiplayer mode. Use `login()` first."}
+
+        previous = db.restore_previous_character(session.email)
+        if not previous:
+            return {"error": "❌ No previous character backup found. Nothing to restore."}
+
+        try:
+            game_state = GameState(**previous["game_state"])
+            game_states["default"] = game_state
+            session.current_run_score = previous.get("run_score", 0)
+
+            hero = game_state.hero
+            return {
+                "narrative": f"""🔄 **Character Restored!**
+
+Welcome back, **{hero.name}** the {role_names.get(hero.role, hero.role)}!
+
+Your previous character has been restored and your new character has been deleted.
+
+📊 **Restored Stats**:
+   - Level: {hero.level}
+   - Depth: {game_state.depth}
+   - Uptime: {hero.uptime}/{hero.max_uptime}
+   - Run Score: {session.current_run_score:,} points
+
+💡 Use 'explore' to continue your adventure.""",
+                "state": {
+                    "hero_name": hero.name,
+                    "role": hero.role,
+                    "level": hero.level,
+                    "depth": game_state.depth,
+                    "restored": True
+                }
+            }
+        except Exception as e:
+            return {"error": f"❌ Failed to restore character: {e}"}
+
+    # Single-player mode - restore from JSON file
+    backup_file = Path(__file__).parent / "storage" / "saves" / "previous_character.json"
+
+    if not backup_file.exists():
+        return {"error": "❌ No previous character backup found. Nothing to restore."}
+
+    try:
+        with open(backup_file, "r", encoding="utf-8") as f:
+            backup_data = json.load(f)
+
+        game_state = GameState(**backup_data["game_state"])
+        game_states["default"] = game_state
+
+        # Delete the backup file after successful restore
+        backup_file.unlink()
+
+        hero = game_state.hero
+        return {
+            "narrative": f"""🔄 **Character Restored!**
+
+Welcome back, **{hero.name}** the {role_names.get(hero.role, hero.role)}!
+
+Your previous character has been restored and your new character has been deleted.
+
+📊 **Restored Stats**:
+   - Level: {hero.level}
+   - Depth: {game_state.depth}
+   - Uptime: {hero.uptime}/{hero.max_uptime}
+
+💡 Use 'explore' to continue your adventure.""",
+            "state": {
+                "hero_name": hero.name,
+                "role": hero.role,
+                "level": hero.level,
+                "depth": game_state.depth,
+                "restored": True
+            }
+        }
+    except Exception as e:
+        return {"error": f"❌ Failed to restore character: {e}"}
 
 
 @mcp.tool()

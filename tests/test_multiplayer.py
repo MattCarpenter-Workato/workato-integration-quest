@@ -124,6 +124,44 @@ class MockDatabaseManager:
             return True
         return False
 
+    def save_previous_character(self, email: str, game_state: dict, run_score: int):
+        email_lower = email.lower()
+        if email_lower not in self.game_sessions:
+            return False
+        self.game_sessions[email_lower]["previous_character"] = {
+            "game_state": game_state,
+            "run_score": run_score,
+            "backed_up_at": datetime.now(timezone.utc),
+        }
+        return True
+
+    def get_previous_character(self, email: str):
+        session = self.game_sessions.get(email.lower())
+        if session:
+            return session.get("previous_character")
+        return None
+
+    def has_previous_character(self, email: str):
+        return self.get_previous_character(email) is not None
+
+    def clear_previous_character(self, email: str):
+        email_lower = email.lower()
+        if email_lower in self.game_sessions and "previous_character" in self.game_sessions[email_lower]:
+            del self.game_sessions[email_lower]["previous_character"]
+            return True
+        return False
+
+    def restore_previous_character(self, email: str):
+        session = self.game_sessions.get(email.lower())
+        if not session or "previous_character" not in session:
+            return None
+        previous = session["previous_character"]
+        # Swap: previous becomes current
+        self.game_sessions[email.lower()]["game_state"] = previous["game_state"]
+        self.game_sessions[email.lower()]["current_run_score"] = previous["run_score"]
+        del self.game_sessions[email.lower()]["previous_character"]
+        return previous
+
 
 class MockEmailService:
     """Mock email service for testing"""
@@ -177,6 +215,7 @@ def multiplayer_env(mock_db, mock_email):
     original_email = server.email_service
     original_game_states = server.game_states.copy()
     original_player_sessions = server.player_sessions.copy()
+    original_pending = server.pending_character_creation.copy()
 
     # Set up multiplayer mode with mocks
     server.MULTIPLAYER_MODE = True
@@ -184,6 +223,7 @@ def multiplayer_env(mock_db, mock_email):
     server.email_service = mock_email
     server.game_states.clear()
     server.player_sessions.clear()
+    server.pending_character_creation.clear()
 
     yield {
         "db": mock_db,
@@ -199,6 +239,8 @@ def multiplayer_env(mock_db, mock_email):
     server.game_states.update(original_game_states)
     server.player_sessions.clear()
     server.player_sessions.update(original_player_sessions)
+    server.pending_character_creation.clear()
+    server.pending_character_creation.update(original_pending)
 
 
 @pytest.fixture
@@ -210,11 +252,13 @@ def single_player_env():
     original_multiplayer_mode = server.MULTIPLAYER_MODE
     original_game_states = server.game_states.copy()
     original_player_sessions = server.player_sessions.copy()
+    original_pending = server.pending_character_creation.copy()
 
     # Set up single-player mode
     server.MULTIPLAYER_MODE = False
     server.game_states.clear()
     server.player_sessions.clear()
+    server.pending_character_creation.clear()
 
     yield server
 
@@ -224,6 +268,8 @@ def single_player_env():
     server.game_states.update(original_game_states)
     server.player_sessions.clear()
     server.player_sessions.update(original_player_sessions)
+    server.pending_character_creation.clear()
+    server.pending_character_creation.update(original_pending)
 
 
 # =============================================================================
@@ -719,3 +765,193 @@ class TestMultiplayerIntegration:
         # New token should work
         result = login_fn(email="hero@example.com", token=new_token)
         assert "error" not in result
+
+
+# =============================================================================
+# Character Backup and Restore Tests
+# =============================================================================
+
+class TestCharacterBackupRestore:
+    """Tests for character backup and restore functionality"""
+
+    def test_create_character_warning_when_existing(self, multiplayer_env):
+        """Test that creating a character shows warning when one exists"""
+        server = multiplayer_env["server"]
+
+        create_fn = get_function(server.create_character)
+
+        # Create first character
+        result = create_fn(name="FirstHero", role="warrior")
+        assert "error" not in result
+        assert "FirstHero" in result["narrative"]
+
+        # Try to create second character - should get warning
+        result = create_fn(name="SecondHero", role="mage")
+        assert "Warning" in result["narrative"]
+        assert "FirstHero" in result["narrative"]
+        assert "requires_confirmation" in result["state"]
+
+    def test_create_character_confirmation_flow(self, multiplayer_env):
+        """Test two-call confirmation for character replacement"""
+        server = multiplayer_env["server"]
+
+        create_fn = get_function(server.create_character)
+
+        # Create first character
+        create_fn(name="FirstHero", role="warrior")
+
+        # First call for second character - warning
+        result = create_fn(name="SecondHero", role="mage")
+        assert "Warning" in result["narrative"]
+
+        # Second call with same name/role - should proceed
+        result = create_fn(name="SecondHero", role="mage")
+        assert "error" not in result
+        assert "SecondHero" in result["narrative"]
+        assert "Recipe Builder" in result["narrative"]  # Mage role name
+
+    def test_create_character_different_params_resets_confirmation(self, multiplayer_env):
+        """Test that changing name/role resets the confirmation flow"""
+        server = multiplayer_env["server"]
+
+        create_fn = get_function(server.create_character)
+
+        # Create first character
+        create_fn(name="FirstHero", role="warrior")
+
+        # First call for second character
+        create_fn(name="SecondHero", role="mage")
+
+        # Call with different params - should get warning again
+        result = create_fn(name="DifferentHero", role="rogue")
+        assert "Warning" in result["narrative"]
+        assert "requires_confirmation" in result["state"]
+
+    def test_restore_previous_character_no_backup(self, multiplayer_env):
+        """Test restore fails when no backup exists"""
+        db = multiplayer_env["db"]
+        server = multiplayer_env["server"]
+
+        # Set up authenticated session
+        db.create_player("hero@example.com", "TestHero", "token123")
+        from models.player import PlayerSession
+        server.player_sessions["default"] = PlayerSession(
+            email="hero@example.com",
+            username="TestHero",
+            is_authenticated=True,
+            current_run_score=0
+        )
+
+        restore_fn = get_function(server.restore_previous_character)
+        result = restore_fn()
+
+        assert "error" in result
+        assert "No previous character" in result["error"]
+
+    def test_restore_previous_character_not_logged_in(self, multiplayer_env):
+        """Test restore fails when not logged in"""
+        server = multiplayer_env["server"]
+
+        restore_fn = get_function(server.restore_previous_character)
+        result = restore_fn()
+
+        assert "error" in result
+        assert "Login required" in result["error"]
+
+    def test_backup_and_restore_flow_multiplayer(self, multiplayer_env):
+        """Test complete backup and restore flow in multiplayer mode"""
+        db = multiplayer_env["db"]
+        server = multiplayer_env["server"]
+
+        # Set up authenticated session
+        db.create_player("hero@example.com", "TestHero", "token123")
+        from models.player import PlayerSession
+        server.player_sessions["default"] = PlayerSession(
+            email="hero@example.com",
+            username="TestHero",
+            is_authenticated=True,
+            current_run_score=100
+        )
+
+        create_fn = get_function(server.create_character)
+        restore_fn = get_function(server.restore_previous_character)
+
+        # Create first character
+        create_fn(name="WarriorHero", role="warrior")
+
+        # Save game to create a session in DB
+        save_fn = get_function(server.save_game)
+        save_fn()
+
+        # Create second character (warning + confirm)
+        create_fn(name="MageHero", role="mage")
+        result = create_fn(name="MageHero", role="mage")
+        assert "MageHero" in result["narrative"]
+
+        # Restore the warrior
+        result = restore_fn()
+        assert "error" not in result
+        assert "WarriorHero" in result["narrative"]
+        assert "restored" in result["state"]
+
+        # Verify game state is the warrior
+        game_state = server.game_states.get("default")
+        assert game_state.hero.name == "WarriorHero"
+        assert game_state.hero.role == "warrior"
+
+    def test_view_status_shows_backup_info(self, multiplayer_env):
+        """Test view_status shows previous character info when backup exists"""
+        db = multiplayer_env["db"]
+        server = multiplayer_env["server"]
+
+        # Set up authenticated session
+        db.create_player("hero@example.com", "TestHero", "token123")
+        from models.player import PlayerSession
+        server.player_sessions["default"] = PlayerSession(
+            email="hero@example.com",
+            username="TestHero",
+            is_authenticated=True,
+            current_run_score=0
+        )
+
+        create_fn = get_function(server.create_character)
+        status_fn = get_function(server.view_status)
+        save_fn = get_function(server.save_game)
+
+        # Create and save first character
+        create_fn(name="WarriorHero", role="warrior")
+        save_fn()
+
+        # Create second character
+        create_fn(name="MageHero", role="mage")
+        create_fn(name="MageHero", role="mage")
+
+        # View status should show backup info
+        result = status_fn()
+        assert "has_previous_character" in result["state"]
+        assert result["state"]["has_previous_character"] is True
+        assert "Previous Character Available" in result["narrative"]
+        assert "WarriorHero" in result["narrative"]
+
+
+class TestSinglePlayerBackupRestore:
+    """Tests for character backup/restore in single-player mode"""
+
+    def test_create_character_warning_single_player(self, single_player_env):
+        """Test warning shown in single-player mode"""
+        create_fn = get_function(single_player_env.create_character)
+
+        # Create first character
+        create_fn(name="FirstHero", role="warrior")
+
+        # Second character should warn
+        result = create_fn(name="SecondHero", role="mage")
+        assert "Warning" in result["narrative"]
+
+    def test_restore_no_backup_single_player(self, single_player_env):
+        """Test restore fails when no backup in single-player"""
+        restore_fn = get_function(single_player_env.restore_previous_character)
+        result = restore_fn()
+
+        assert "error" in result
+        assert "No previous character" in result["error"]

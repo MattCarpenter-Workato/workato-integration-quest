@@ -165,3 +165,68 @@ class DatabaseManager:
         """Delete a player's saved game session"""
         result = self.game_sessions.delete_one({"player_email": email.lower()})
         return result.deleted_count > 0
+
+    # --- Previous Character Backup Operations ---
+
+    def save_previous_character(self, email: str, game_state: Dict[str, Any], run_score: int) -> bool:
+        """Backup the current character to the previous_character slot"""
+        now = datetime.utcnow()
+        result = self.game_sessions.update_one(
+            {"player_email": email.lower()},
+            {
+                "$set": {
+                    "previous_character": {
+                        "game_state": game_state,
+                        "run_score": run_score,
+                        "backed_up_at": now,
+                    }
+                }
+            }
+        )
+        return result.modified_count > 0
+
+    def get_previous_character(self, email: str) -> Optional[Dict[str, Any]]:
+        """Get the backed-up previous character if it exists"""
+        session = self.game_sessions.find_one({"player_email": email.lower()})
+        if session:
+            return session.get("previous_character")
+        return None
+
+    def has_previous_character(self, email: str) -> bool:
+        """Check if a previous character backup exists"""
+        return self.get_previous_character(email) is not None
+
+    def clear_previous_character(self, email: str) -> bool:
+        """Clear the previous character backup"""
+        result = self.game_sessions.update_one(
+            {"player_email": email.lower()},
+            {"$unset": {"previous_character": ""}}
+        )
+        return result.modified_count > 0
+
+    def restore_previous_character(self, email: str) -> Optional[Dict[str, Any]]:
+        """
+        Restore previous character, deleting current one.
+        Returns the restored character data or None if no backup exists.
+        """
+        session = self.game_sessions.find_one({"player_email": email.lower()})
+        if not session or "previous_character" not in session:
+            return None
+
+        previous = session["previous_character"]
+        now = datetime.utcnow()
+
+        # Replace current with previous, clear backup
+        self.game_sessions.update_one(
+            {"player_email": email.lower()},
+            {
+                "$set": {
+                    "game_state": previous["game_state"],
+                    "current_run_score": previous["run_score"],
+                    "last_updated": now,
+                },
+                "$unset": {"previous_character": ""}
+            }
+        )
+
+        return previous
