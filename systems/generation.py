@@ -86,37 +86,32 @@ class DungeonGenerator:
         return room
 
     def _generate_enemies(self, depth: int, room_type: str) -> List[Enemy]:
-        """Generate enemies for a room based on depth"""
+        """Generate a single enemy for a room based on depth"""
 
         enemies = []
 
         # Determine enemy tier based on depth
         if depth <= 3:
             tier = "common"
-            count = random.randint(1, 2)
         elif depth <= 6:
             tier = "uncommon"
-            count = random.randint(1, 3)
         elif depth <= 9:
             tier = "rare"
-            count = random.randint(1, 2)
         else:
-            # Mix of tiers
+            # Mix of tiers at deep levels
             tier = random.choice(["uncommon", "rare"])
-            count = random.randint(2, 3)
 
-        # Generate enemies
+        # Generate exactly 1 enemy per room
         enemy_pool = self.enemy_data[tier]
-        for i in range(count):
-            enemy_template = random.choice(enemy_pool)
-            enemy = Enemy(**enemy_template)
+        enemy_template = random.choice(enemy_pool)
+        enemy = Enemy(**enemy_template)
 
-            # Scale HP based on depth
-            hp_multiplier = 1.0 + (depth * 0.1)  # +10% HP per depth
-            enemy.hp = int(enemy.hp * hp_multiplier)
-            enemy.max_hp = enemy.hp
+        # Scale HP based on depth
+        hp_multiplier = 1.0 + (depth * 0.1)  # +10% HP per depth
+        enemy.hp = int(enemy.hp * hp_multiplier)
+        enemy.max_hp = enemy.hp
 
-            enemies.append(enemy)
+        enemies.append(enemy)
 
         return enemies
 
