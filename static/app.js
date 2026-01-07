@@ -179,6 +179,7 @@ function updateActionButtons() {
         actionButtons.appendChild(createButton('Rest', doRest, 'secondary'));
         actionButtons.appendChild(createButton('Save', doSave, 'secondary'));
         actionButtons.appendChild(createButton('Load', showLoadSaves, 'secondary'));
+        actionButtons.appendChild(createButton('New Game', confirmNewGame, 'secondary'));
     }
 }
 
@@ -270,6 +271,29 @@ async function doSave() {
     handleResponse(result, 'success');
 }
 
+function confirmNewGame() {
+    showModal('Start New Game?',
+        '<p style="margin:0;color:#eaeaea;">This will erase your current progress.<br><br>Are you sure you want to start over?</p>',
+        doNewGame,
+        true
+    );
+}
+
+async function doNewGame() {
+    const result = await apiCall('/reset', 'POST');
+    if (!result.error) {
+        // Go back to character creation
+        gameScreen.classList.add('hidden');
+        createScreen.classList.remove('hidden');
+        clearLog();
+        gameState.hasCharacter = false;
+        gameState.enemies = [];
+        gameState.exits = [];
+        gameState.items = [];
+        gameState.inventory = [];
+    }
+}
+
 async function doLoad(saveId) {
     const result = await apiCall('/load', 'POST', { save_id: saveId });
     handleResponse(result, 'success');
@@ -286,24 +310,20 @@ async function showLoadSaves() {
         return;
     }
 
-    let content = '<div class="target-list">';
-    result.saves.forEach(save => {
-        const date = save.timestamp ? new Date(save.timestamp).toLocaleString() : 'Unknown';
-        content += `<button class="target-btn" data-save="${save.save_id}">
-            <strong>${save.hero_name}</strong> (Lv ${save.level})<br>
-            <small>Depth ${save.depth} - ${date}</small>
-        </button>`;
+    // Simple text list
+    let content = '<select id="save-select" size="8" style="width:100%;font-size:14px;padding:8px;background:#0f3460;color:#eaeaea;border:1px solid #333;border-radius:8px;">';
+    result.saves.forEach((save, i) => {
+        const date = save.timestamp ? new Date(save.timestamp).toLocaleString() : '';
+        content += `<option value="${save.save_id}">${save.hero_name} Lv${save.level} D${save.depth} - ${date}</option>`;
     });
-    content += '</div>';
+    content += '</select>';
 
-    showModal('Load Game', content, null, false);
-
-    document.querySelectorAll('.target-btn').forEach(btn => {
-        btn.onclick = () => {
-            hideModal();
-            doLoad(btn.dataset.save);
-        };
-    });
+    showModal('Load Game', content, () => {
+        const select = document.getElementById('save-select');
+        if (select && select.value) {
+            doLoad(select.value);
+        }
+    }, true);
 }
 
 // ==================== //
@@ -522,22 +542,18 @@ function setupCharacterCreation() {
                 return;
             }
 
-            let content = '<div class="target-list">';
-            result.saves.forEach(save => {
-                const date = save.timestamp ? new Date(save.timestamp).toLocaleString() : 'Unknown';
-                content += `<button class="target-btn" data-save="${save.save_id}">
-                    <strong>${save.hero_name}</strong> (Lv ${save.level})<br>
-                    <small>Depth ${save.depth} - ${date}</small>
-                </button>`;
+            // Simple text list
+            let content = '<select id="save-select" size="8" style="width:100%;font-size:16px;padding:8px;background:#0f3460;color:#eaeaea;border:1px solid #333;border-radius:8px;">';
+            result.saves.forEach((save, i) => {
+                const date = save.timestamp ? new Date(save.timestamp).toLocaleString() : '';
+                content += `<option value="${save.save_id}">${save.hero_name} Lv${save.level} D${save.depth} - ${date}</option>`;
             });
-            content += '</div>';
+            content += '</select>';
 
-            showModal('Load Game', content, null, false);
-
-            document.querySelectorAll('.target-btn').forEach(btn => {
-                btn.onclick = async () => {
-                    hideModal();
-                    const loadResult = await apiCall('/load', 'POST', { save_id: btn.dataset.save });
+            showModal('Load Game', content, async () => {
+                const select = document.getElementById('save-select');
+                if (select && select.value) {
+                    const loadResult = await apiCall('/load', 'POST', { save_id: select.value });
                     if (!loadResult.error) {
                         createScreen.classList.add('hidden');
                         gameScreen.classList.remove('hidden');
@@ -545,8 +561,8 @@ function setupCharacterCreation() {
                         appendToLog(loadResult.narrative || 'Game loaded!', 'success');
                         await refreshGameState();
                     }
-                };
-            });
+                }
+            }, true);
         };
     }
 

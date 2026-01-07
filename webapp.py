@@ -240,6 +240,16 @@ async def api_save(session_id: Optional[str] = Cookie(None, alias=SESSION_COOKIE
     return JSONResponse(content=result)
 
 
+@app.post("/api/reset")
+async def api_reset(session_id: Optional[str] = Cookie(None, alias=SESSION_COOKIE_NAME)):
+    """Reset game - start fresh with new character."""
+    session = get_or_create_session(session_id)
+    # Clear the game state for this session
+    if session in game_states:
+        del game_states[session]
+    return JSONResponse(content={"success": True, "message": "Game reset. Create a new character to begin!"})
+
+
 @app.post("/api/load")
 async def api_load(
     request: LoadGameRequest,
