@@ -133,11 +133,14 @@ function hideModal() {
 function updateActionButtons() {
     actionButtons.innerHTML = '';
 
-    if (gameState.inCombat) {
+    // Show combat buttons if in combat OR if there are enemies in the room
+    const hasEnemies = gameState.enemies.length > 0;
+    const showCombatUI = gameState.inCombat || hasEnemies;
+
+    if (showCombatUI) {
         // Combat actions
-        if (gameState.enemies.length > 0) {
-            const attackBtn = createButton('Attack', () => showAttackTargets());
-            actionButtons.appendChild(attackBtn);
+        if (hasEnemies) {
+            actionButtons.appendChild(createButton('Attack', () => showAttackTargets()));
         }
 
         actionButtons.appendChild(createButton('Defend', doDefend));
@@ -146,6 +149,9 @@ function updateActionButtons() {
         if (gameState.inventory.some(i => i.type === 'Consumable')) {
             actionButtons.appendChild(createButton('Item', () => showItemSelection()));
         }
+
+        // Also show Status in combat
+        actionButtons.appendChild(createButton('Status', doStatus, 'secondary'));
     } else {
         // Exploration actions
         actionButtons.appendChild(createButton('Explore', doExplore));
