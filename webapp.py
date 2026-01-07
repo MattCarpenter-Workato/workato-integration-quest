@@ -251,6 +251,33 @@ async def api_load(
     return JSONResponse(content=result)
 
 
+@app.get("/api/saves")
+async def api_list_saves():
+    """List all available save files."""
+    import json
+    save_dir = Path(__file__).parent / "storage" / "saves"
+
+    if not save_dir.exists():
+        return JSONResponse(content={"saves": []})
+
+    saves = []
+    for save_file in sorted(save_dir.glob("save_*.json"), reverse=True):
+        try:
+            with open(save_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            saves.append({
+                "save_id": save_file.stem,
+                "hero_name": data.get("hero", {}).get("name", "Unknown"),
+                "level": data.get("hero", {}).get("level", 1),
+                "depth": data.get("depth", 1),
+                "timestamp": data.get("last_updated", "")
+            })
+        except Exception:
+            continue
+
+    return JSONResponse(content={"saves": saves})
+
+
 @app.get("/api/game_state")
 async def api_game_state(session_id: Optional[str] = Cookie(None, alias=SESSION_COOKIE_NAME)):
     """Get current game state for UI updates."""

@@ -78,6 +78,11 @@ function formatNarrative(text) {
     return text;
 }
 
+function capitalize(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function updateStats(hero) {
     if (!hero) return;
 
@@ -173,6 +178,7 @@ function updateActionButtons() {
         actionButtons.appendChild(createButton('Status', doStatus, 'secondary'));
         actionButtons.appendChild(createButton('Rest', doRest, 'secondary'));
         actionButtons.appendChild(createButton('Save', doSave, 'secondary'));
+        actionButtons.appendChild(createButton('Load', showLoadSaves, 'secondary'));
     }
 }
 
@@ -262,6 +268,42 @@ async function doUseItem(item) {
 async function doSave() {
     const result = await apiCall('/save', 'POST');
     handleResponse(result, 'success');
+}
+
+async function doLoad(saveId) {
+    const result = await apiCall('/load', 'POST', { save_id: saveId });
+    handleResponse(result, 'success');
+    if (!result.error) {
+        await refreshGameState();
+    }
+}
+
+async function showLoadSaves() {
+    const result = await apiCall('/saves');
+
+    if (result.error || !result.saves || result.saves.length === 0) {
+        appendToLog('No saved games found.', 'error');
+        return;
+    }
+
+    let content = '<div class="target-list">';
+    result.saves.forEach(save => {
+        const date = save.timestamp ? new Date(save.timestamp).toLocaleString() : 'Unknown';
+        content += `<button class="target-btn" data-save="${save.save_id}">
+            <strong>${save.hero_name}</strong> (Lv ${save.level})<br>
+            <small>Depth ${save.depth} - ${date}</small>
+        </button>`;
+    });
+    content += '</div>';
+
+    showModal('Load Game', content, null, false);
+
+    document.querySelectorAll('.target-btn').forEach(btn => {
+        btn.onclick = () => {
+            hideModal();
+            doLoad(btn.dataset.save);
+        };
+    });
 }
 
 // ==================== //
@@ -411,9 +453,28 @@ async function init() {
         createScreen.classList.add('hidden');
         gameScreen.classList.remove('hidden');
         clearLog();
-        appendToLog(`Welcome back, ${result.hero.name}! Your adventure continues...`);
+
+        // Build a detailed welcome message
+        const hero = result.hero;
+        const room = result.room;
+        let welcomeMsg = `**Welcome back, ${hero.name} the ${capitalize(hero.role)}!** (Lv ${hero.level})\n\n`;
+        welcomeMsg += `**Location:** ${room?.name || 'Unknown'} (Depth ${result.depth || 1})\n`;
+        welcomeMsg += `**HP:** ${hero.hp}/${hero.max_hp} | **MP:** ${hero.mp}/${hero.max_mp}\n`;
+
+        if (room?.enemies && room.enemies.length > 0) {
+            welcomeMsg += `\n**Enemies present:**\n`;
+            room.enemies.forEach(e => {
+                welcomeMsg += `- ${e.emoji || ''} ${e.name} (${e.hp}/${e.max_hp} HP)\n`;
+            });
+        } else if (room?.cleared) {
+            welcomeMsg += `\nRoom cleared. Ready to explore.`;
+        }
+
+        appendToLog(welcomeMsg);
+
         gameState.hasCharacter = true;
         gameState.inCombat = result.in_combat;
+        gameState.roomCleared = result.room?.cleared || false;
         gameState.enemies = result.room?.enemies || [];
         gameState.exits = result.room?.exits || [];
         gameState.items = result.room?.items || [];
@@ -441,6 +502,7 @@ async function init() {
 
 function setupCharacterCreation() {
     const roleButtons = document.querySelectorAll('.role-btn');
+    const loadSavesBtn = document.getElementById('load-saves-btn');
 
     roleButtons.forEach(btn => {
         btn.onclick = () => {
@@ -449,6 +511,44 @@ function setupCharacterCreation() {
             doCreateCharacter(name, role);
         };
     });
+
+    // Load saved game button on creation screen
+    if (loadSavesBtn) {
+        loadSavesBtn.onclick = async () => {
+            const result = await apiCall('/saves');
+
+            if (result.error || !result.saves || result.saves.length === 0) {
+                alert('No saved games found.');
+                return;
+            }
+
+            let content = '<div class="target-list">';
+            result.saves.forEach(save => {
+                const date = save.timestamp ? new Date(save.timestamp).toLocaleString() : 'Unknown';
+                content += `<button class="target-btn" data-save="${save.save_id}">
+                    <strong>${save.hero_name}</strong> (Lv ${save.level})<br>
+                    <small>Depth ${save.depth} - ${date}</small>
+                </button>`;
+            });
+            content += '</div>';
+
+            showModal('Load Game', content, null, false);
+
+            document.querySelectorAll('.target-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    hideModal();
+                    const loadResult = await apiCall('/load', 'POST', { save_id: btn.dataset.save });
+                    if (!loadResult.error) {
+                        createScreen.classList.add('hidden');
+                        gameScreen.classList.remove('hidden');
+                        clearLog();
+                        appendToLog(loadResult.narrative || 'Game loaded!', 'success');
+                        await refreshGameState();
+                    }
+                };
+            });
+        };
+    }
 
     // Allow Enter key to select first role
     heroNameInput.addEventListener('keypress', (e) => {
