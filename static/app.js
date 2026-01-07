@@ -8,6 +8,7 @@ const API_BASE = '/api';
 let gameState = {
     hasCharacter: false,
     inCombat: false,
+    roomCleared: false,
     enemies: [],
     exits: [],
     items: [],
@@ -133,16 +134,15 @@ function hideModal() {
 function updateActionButtons() {
     actionButtons.innerHTML = '';
 
-    // Show combat buttons if in combat OR if there are enemies in the room
-    const hasEnemies = gameState.enemies.length > 0;
-    const showCombatUI = gameState.inCombat || hasEnemies;
+    // Show combat buttons if there are ALIVE enemies in the room (enemies array is pre-filtered by API)
+    const hasAliveEnemies = gameState.enemies.length > 0;
+
+    // Only show combat UI if there are alive enemies AND room is not cleared
+    const showCombatUI = hasAliveEnemies && !gameState.roomCleared;
 
     if (showCombatUI) {
         // Combat actions
-        if (hasEnemies) {
-            actionButtons.appendChild(createButton('Attack', () => showAttackTargets()));
-        }
-
+        actionButtons.appendChild(createButton('Attack', () => showAttackTargets()));
         actionButtons.appendChild(createButton('Defend', doDefend));
         actionButtons.appendChild(createButton('Flee', doFlee));
 
@@ -288,10 +288,19 @@ async function refreshGameState() {
 
     gameState.hasCharacter = result.has_character;
     gameState.inCombat = result.in_combat;
+    gameState.roomCleared = result.room?.cleared || false;
     gameState.enemies = result.room?.enemies || [];
     gameState.exits = result.room?.exits || [];
     gameState.items = result.room?.items || [];
     gameState.inventory = result.hero ? [] : []; // We'd need to add inventory to game_state API
+
+    // Debug log to see what's happening
+    console.log('Game state updated:', {
+        inCombat: gameState.inCombat,
+        roomCleared: gameState.roomCleared,
+        enemyCount: gameState.enemies.length,
+        enemies: gameState.enemies
+    });
 
     if (result.hero) {
         updateStats(result.hero);
